@@ -6,4 +6,6 @@ public interface UserService {
 
     public UserEntity queryUserByName(String username);
 
+    public void addUser(UserEntity user);
+
 }

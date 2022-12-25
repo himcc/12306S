@@ -1,7 +1,7 @@
 spring:
   #数据库的连接信息：5项，这里我是mysql8的连接信息
   datasource:
-    url: jdbc:mysql://172.24.146.180:3306/db_12306?characterEncoding=UTF8
+    url: jdbc:mysql://172.24.148.194:3306/db_12306?characterEncoding=UTF8
     username: myt1
     password: mytest1
     driver-class-name: com.mysql.cj.jdbc.Driver

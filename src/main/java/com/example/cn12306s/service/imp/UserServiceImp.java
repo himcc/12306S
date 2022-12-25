@@ -16,4 +16,9 @@ public class UserServiceImp implements UserService {
     public UserEntity queryUserByName(String username) {
         return userDao.findByName(username);
     }
+
+    @Override
+    public void addUser(UserEntity user) {
+        userDao.addUser(user);
+    }
 }

@@ -14,7 +14,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.authorizeRequests().antMatchers("/","/reg").permitAll()
+        http.authorizeRequests().antMatchers("/","/reg","/reg.html").permitAll()
                 .anyRequest().authenticated();
 
         http.formLogin();
@@ -22,6 +22,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.logout();
 
         http.rememberMe();
+
+        http.csrf().disable();
     }
 
     @Bean

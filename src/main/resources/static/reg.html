@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="">
+  <title>Register</title>
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+  <link href="https://getbootstrap.com/docs/4.0/examples/signin/signin.css" rel="stylesheet" crossorigin="anonymous"/>
+  <script
+          src="https://code.jquery.com/jquery-3.6.3.min.js"
+          integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU="
+          crossorigin="anonymous"></script>
+
+</head>
+<body>
+<script>
+  function reg(){
+    $("#tip").text("");
+    var pw1 = $("#password").val();
+    var pw2 = $("#password2").val();
+    if(pw1==pw2){
+      var username = $("#username").val();
+      $.post("/reg",{"username":username,"password":pw1},function(data,status,xhr){
+        if(data.code==10000){
+          $(".form-signin").children().remove();
+          $(".form-signin").append("<h2 class=\"form-signin-heading\">注册成功</h2><br><a href=\"/\">回主页</a>");
+        }else if(data.code==10001){
+          $("#tip").text("用户名已被占用");
+        }else{
+          $("#tip").text("注册失败");
+          console.log(data.msg)
+        }
+      },"json");
+    }else{
+      $("#tip").text("两次输入的密码不一致");
+    }
+    return false;
+  }
+</script>
+<div class="container">
+  <form class="form-signin"  onsubmit="return reg()">
+    <h2 class="form-signin-heading">Please register</h2>
+    <div id="tip" style="width:100%;margin-bottom: 1rem;color: red;"></div>
+    <p>
+      <label for="username" class="sr-only">Username</label>
+      <input type="text" id="username" name="username" class="form-control" placeholder="Username" required autofocus>
+    </p>
+    <p>
+      <label for="password" class="sr-only">Password</label>
+      <input type="password" id="password" name="password" class="form-control" placeholder="Password" required>
+    </p>
+    <p>
+      <label for="password" class="sr-only">Password</label>
+        <input type="password" id="password2" name="password2" class="form-control" placeholder="Password Confirm" required>
+    </p>
+    <button class="btn btn-lg btn-primary btn-block" type="submit">Register</button>
+  </form>
+</div>
+</body></html>
