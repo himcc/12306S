@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5">
+<head>
+    <meta charset="UTF-8">
+    <script
+            src="https://code.jquery.com/jquery-3.6.3.min.js"
+            integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU="
+            crossorigin="anonymous"></script>
+    <style>
+        .textRight{
+            margin-right: 5px;
+        }
+        .inb{
+            display: inline-block;
+        }
+        #tiketBtn{
+            background-color: #007bff;
+            border-color: #007bff;
+            color: #fff;
+            border-radius: 0.3rem;
+            padding: 0.3rem 0.5rem;
+
+            text-decoration: none;
+
+        }
+    </style>
+    <title>12306S</title>
+</head>
+<body>
+<div>
+    <div class="inb">
+        <span class="textRight">12306S</span>
+        <a href="#" id="tiketBtn" class="textRight" onclick="alert('ffff');return false">订票</a>
+    </div>
+    <div class="inb" style="float:right">
+        <div class="inb" sec:authorize="!isAuthenticated()">
+            <a class="textRight" href="/reg.html">注册</a>
+            <a class="textRight" href="/login">登录</a>
+        </div>
+        <div class="inb" sec:authorize="isAuthenticated()">
+            <div class="inb" sec:authorize="hasRole('admin')">
+                <span class="textRight">|</span>
+                <a class="textRight" >管理操作:</a>
+                <a class="textRight" >管理Admin</a>
+                <a class="textRight" >车站</a>
+                <a class="textRight" >车次</a>
+                <a class="textRight" >执行车次</a>
+                <span class="textRight">|</span>
+            </div>
+            <a class="textRight" >查看订单</a>
+            <a class="textRight" >修改密码</a>
+            <span class="textRight">|</span>
+            <span class="textRight">
+                <span sec:authentication="name" >
+                </span>(<span th:text="${uid}" ></span>)
+            </span>
+            <a class="textRight" href="/logout">退出</a>
+        </div>
+
+    </div>
+</div>
+<hr/>
+
+</body>
+</html>

@@ -19,7 +19,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         http.formLogin();
 
-        http.logout();
+        http.logout().logoutSuccessUrl("/");
 
         http.rememberMe();
 
