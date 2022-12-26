@@ -10,10 +10,7 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.Date;
@@ -23,6 +20,17 @@ public class HelloController {
 
     @Autowired
     private UserService userService;
+
+    public static long getUid() throws Exception {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if(!(authentication instanceof AnonymousAuthenticationToken)){
+            Object principal = authentication.getPrincipal();
+            DBUserDetailsService.DBUser user = (DBUserDetailsService.DBUser)principal;
+            return user.getId();
+        }else{
+            throw new Exception("用户为登录，请登录后再修改密码");
+        }
+    }
 
     @GetMapping("/")
     public ModelAndView index(){
@@ -36,8 +44,27 @@ public class HelloController {
         return mv;
     }
 
+    @PostMapping("/chgpwd")
+    public RetData changePasswd(@RequestParam String password){
+        RetData ret = new RetData();
+        try {
+            UserEntity user = new UserEntity();
+            long uid = getUid();
+            user.setPasswd(new BCryptPasswordEncoder().encode(password));
+            user.setId(uid);
+            userService.changePasswd(user);
+            ret.setCode(10000);
+            ret.setMsg("成功！");
+            return ret;
+        } catch (Exception e) {
+            ret.setCode(10002);
+            ret.setMsg(e.getClass().getName()+" "+e.getLocalizedMessage());
+            return ret;
+        }
+    }
+
     @PostMapping("/reg")
-    public RetData reg(String username,String password){
+    public RetData reg(@RequestParam String username,@RequestParam String password){
         RetData ret = new RetData();
 
         try{

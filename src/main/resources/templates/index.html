@@ -24,11 +24,104 @@
             text-decoration: none;
 
         }
+        div.nav a{
+            text-decoration: none;
+        }
+        .mainbox{
+            margin: 0 auto;
+            width: fit-content;
+        }
     </style>
     <title>12306S</title>
 </head>
 <body>
-<div>
+<script>
+    var changepwd={
+        ele:`
+        <div id="tip" style="width:100%;margin-bottom: 1rem;color: red;">&nbsp;</div>
+        <input id="newpasswd" type="text" style="margin-right:10px;width:100px;">
+        <button id="doChangePasswd" >修改密码</button>
+        `,
+        init:function (){
+            $("#mainbox").children().remove();
+            $("#mainbox").append(this.ele);
+            $("#doChangePasswd").click(function (){
+                var newpasswd = $("#newpasswd").val();
+                if(newpasswd.length>0){
+                    var p = this;
+                    $.post("/chgpwd",{"password":newpasswd},function(data,status,xhr){
+                        if(data.code==10000){
+                            $("#mainbox").children().remove();
+                            $("#mainbox").append("密码修改成功");
+                        }else{
+                            $("#tip").text("注册失败");
+                            console.log(data.msg)
+                        }
+                    },"json");
+                }else{
+                    $("#tip").text("密码不能为空");
+                }
+            });
+        }
+    };
+    function chgpwd(){
+        changepwd.init();
+    }
+
+
+    var adminOp = {
+        ele:`
+        <div id="tip" style="width:100%;margin-bottom: 1rem;color: red;">&nbsp;</div>
+        <div id="adminOpBox"></div>
+        `,
+        btnClick:function (uid,newRole){
+            var p = this;
+            var url = "/admin/roleswitch?uid="+uid+"&newRole="+newRole;
+            $.get(url,function (data,status,xhr){
+                if(data.code==10000){
+                    p.init();
+                }else{
+                    $("#tip").text("角色变更失败");
+                    console.log(data.msg)
+                }
+            },"json");
+        },
+        handleAllUser:function(data,status,xhr){
+            if(data.code==10000){
+                var tablePre = `
+                    <table border="1">
+                      <tr>
+                        <th>用户名</th>
+                        <th>角色</th>
+                        <th></th>
+                      </tr>`;
+                var tr_arr = [];
+                for(var x of data.data){
+                    if(x.username=='root'){
+                        continue;
+                    }
+                    var rr=x.sysRole==0?'admin':'普通用户';
+                    var newrr = x.sysRole==1?'成为:admin':'成为:普通用户';
+                    tr_arr.push('<tr><td>'+x.username+'</td><td>'+rr+'</td><td><button onclick="adminOp.btnClick('+x.id+','+(x.sysRole==0?1:0)+')">'+newrr+'</button></td></tr>');
+                }
+                $("#adminOpBox").append(tablePre+tr_arr.join(" ")+"</table>");
+                // $("#adminOpBox").text(JSON.stringify(data));
+            }else{
+                $("#tip").text("用户获取失败");
+                console.log(data.msg)
+            }
+        },
+        init: function (){
+            var p = this;
+            $("#mainbox").children().remove();
+            $("#mainbox").append(this.ele);
+            $.get("/admin/getalluser",p.handleAllUser,"json");
+        }
+    }
+
+
+</script>
+<div class="nav">
     <div class="inb">
         <span class="textRight">12306S</span>
         <a href="#" id="tiketBtn" class="textRight" onclick="alert('ffff');return false">订票</a>
@@ -42,14 +135,14 @@
             <div class="inb" sec:authorize="hasRole('admin')">
                 <span class="textRight">|</span>
                 <a class="textRight" >管理操作:</a>
-                <a class="textRight" >管理Admin</a>
+                <a class="textRight" href="#" onclick="adminOp.init();return false" >管理Admin</a>
                 <a class="textRight" >车站</a>
                 <a class="textRight" >车次</a>
                 <a class="textRight" >执行车次</a>
                 <span class="textRight">|</span>
             </div>
             <a class="textRight" >查看订单</a>
-            <a class="textRight" >修改密码</a>
+            <a class="textRight" href="#" onclick="chgpwd();return false">修改密码</a>
             <span class="textRight">|</span>
             <span class="textRight">
                 <span sec:authentication="name" >
@@ -61,6 +154,9 @@
     </div>
 </div>
 <hr/>
+
+<div class="mainbox" id="mainbox">
+</div>
 
 </body>
 </html>
