@@ -8,6 +8,9 @@
             integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU="
             crossorigin="anonymous"></script>
     <style>
+        a{
+            color: #3b99fc;
+        }
         .textRight{
             margin-right: 5px;
         }
@@ -466,9 +469,12 @@
                     $("#opBox").append("没有车次");
                     return;
                 }
-
+                function srcDst(d){
+                    var stationObj =   JSON.parse(d.stationJson);
+                    return '('+stationObj[0].stationName+'->'+stationObj[stationObj.length-1].stationName+')';
+                }
                 var ele_arr = data.data.map(function (d){
-                    var a= '<div id="t_'+d.trainName+'" class="trainHead" style="width: 100%;background-color: #e5eecc;border: 1px solid #c3c3c3;">'+d.trainName+'</div>';
+                    var a= '<div id="t_'+d.trainName+'" class="trainHead" style="width: 100%;background-color: #e5eecc;border: 1px solid #c3c3c3;">'+d.trainName+" "+srcDst(d)+'</div>';
                     var b = '<div id="desc_'+d.trainName+'" style="display:none;width: 100%;background-color: #e5eecc;border: 1px solid #c3c3c3">'+trainShow.showDetail(d)+'</div>';
                     return a+b;
                 });
@@ -515,7 +521,7 @@
             var op_ele = `
                 <div style="padding: 5px;">
                 <button style="margin-left:5px;" onclick="trainShow.del(`+d.id+',\''+d.trainName+`\')">删除</span></button>
-                <button style="margin-left:5px;" onclick="trainShow.exe(`+d+`)">执行</span></button>
+                <button style="margin-left:5px;" onclick="trainShow.exe(\'`+d.trainName+`\')">执行</span></button>
                 </div>
             `;
 
@@ -545,7 +551,7 @@
         <div id="tip" style="width:100%;margin-bottom: 1rem;color: red;">&nbsp;</div>
         <div id="opBox"></div>
         `,
-        init:function (d){
+        init:function (trainName){
             var p = this;
             $("#mainbox").children().remove();
 
@@ -553,11 +559,176 @@
 
             $("#opBox").append('<h3>生成执行车次</h3><hr/>');
 
-            $("#opBox").append('<input type="text" name="k" style="width:60px" readonly value="'+k+'" >')
+            $("#opBox").append('车次：<input type="text" id="trainName" style="width:60px" readonly value="'+trainName+'" ><br/>')
+            $("#opBox").append('执行日期：<input type="date" id="exeDate" onchange="exeTrainGen.setExeDate()"><br/>')
+            $("#opBox").append('卖票时间：<input type="datetime-local" id="saleTs" ><br/>')
+            $("#opBox").append('<button onclick="exeTrainGen.add()">确定</button>')
 
+        },
+        setExeDate:function (){
+            if($("#saleTs").val()==''){
+                var x = new Date(Date.parse($("#exeDate").val())-15*24*60*60*1000+9*60*60*1000);
+                var omg = x.toISOString().substring(0,16);
+                $("#saleTs").val(omg);
+            }
+        },
+        add:function (){
+            $("#tip").text(" ").append("<span>&nbsp;</span>");
+
+            var trainName = $("#trainName").val();
+            var exeDateS = $("#exeDate").val();
+            var saleTsS = $("#saleTs").val();
+
+            if(exeDateS==''){
+                $("#tip").text("执行日期未填");
+                return;
+            }
+            if(saleTsS==''){
+                $("#tip").text("卖票时间未填");
+                return;
+            }
+            if(exeDateS<saleTsS){
+                $("#tip").text("卖票时间晚于执行时间");
+                return;
+            }
+            var saleTs = Date.parse(saleTsS);
+            $.post("/admin/addexetrain",{"trainName":trainName,"exeDate":exeDateS,"saleTs":saleTs},function (data,status,xhr){
+                if(data.code==10000){
+                    exeTrainShow.init();
+                }else{
+                    $("#tip").text("天剑失败");
+                    console.log(data.msg)
+                }
+            },"json");
+        }
+    };
+
+    var exeTrainShow = {
+        init_ele:`
+        <div id="tip" style="width:100%;margin-bottom: 1rem;color: red;">&nbsp;</div>
+        <div id="opBox"></div>
+        `,
+        init:function (trainName){
+            var p = this;
+            $("#mainbox").children().remove();
+
+            $("#mainbox").append(this.init_ele);
+
+            $("#opBox").append('<h3>执行车次</h3><hr/>');
+
+            $.get("/admin/getallexetrain",exeTrainShow.show,"json");
+
+        },
+        show : function (data,status,xhr){
+            if(data.code==10000){
+                if(data.data.length<1){
+                    $("#opBox").append("没有执行车次");
+                    return;
+                }
+                function getTitle(d){
+                    var stationObj =   JSON.parse(d.stationJson);
+                    var haha = '#'+d.id+' '+d.trainName+" "+d.exeDate+' ('+stationObj[0].stationName+'->'+stationObj[stationObj.length-1].stationName+')'
+                        + '<div style="display: inline-block;float: right">开始卖票时间: '+new Date(d.exeDate).toISOString().substring(0,16)+'</div>';
+                    return haha;
+                }
+                var ele_arr = data.data.map(function (d){  // [{id,trainName,exeDate,saleTs,stationJson,carJson}]
+                    var a= '<div class="trainHead" style="width: 100%;background-color: #e5eecc;border: 1px solid #c3c3c3;">'+getTitle(d)+'</div>';
+                    var b = '<div style="display:none;width: 100%;background-color: #e5eecc;border: 1px solid #c3c3c3">'+exeTrainShow.showDetail(d)+'</div>';
+                    return a+b;
+                });
+                $("#opBox").append('<div style="width: 650px;">'+ele_arr.join(" ")+'</div>');
+                $(".trainHead").click(function (){
+                    $(this).next().slideToggle("fast");
+                });
+            }else{
+                $("#tip").text("获取执行车次失败");
+                console.log(data.msg)
+            }
+        },
+        showDetail:function (d){
+            //[{id,trainName,exeDate,saleTs,stationJson,carJson}]
+            // stationJson  [{id,stationName,arriveMin,leaveMin}]
+            // carJson  [{id,seatType,seatNum}]
+            var stationObj =   JSON.parse(d.stationJson);
+            var carObj = JSON.parse(d.carJson);
+
+            function timeF(item){
+                var baseTs = Date.parse(d.exeDate);
+                var t = baseTs+item*60*1000;
+                var omg = new Date(t).toISOString().substring(0,16).split('T');
+                return omg[0]+'<br/>'+omg[1];
+            }
+            // stationJson  [{id,stationName,arriveMin,leaveMin}]
+            var stationC = {
+                "headNames":[,"#","站点","到站时间","发车时间"],
+                "dNames":[{"n":"id"},{"n":"stationName"},{"n":"arriveMin","f":timeF},{"n":"leaveMin","f":timeF}]
+            };
+            var stationT = arrToTable(stationObj,stationC);
+
+            // carJson  [{id,seatType,seatNum}]
+            var carC = {
+                "headNames":[,"#","座位类型","数量"],
+                "dNames":[{"n":"id"},{"n":"seatType"},{"n":"seatNum"}]
+            };
+            var carT = arrToTable(carObj,carC);
+
+            var op_ele = `
+                <div style="padding: 5px;">
+                <button style="margin-left:5px;" onclick="exeTrainShow.del(`+d.id+`,\'`+d.trainName+`\',\'`+d.exeDate+`\')">删除</button>
+                <button style="margin-left:5px;" onclick="exeTrainShow.addcar()">加挂</button>
+                </div>
+            `;
+
+            return '<div style="text-align:center"><div style="display: inline-block;vertical-align:top;padding: 5px;">'+stationT+'</div><div style="display: inline-block;vertical-align:top;padding: 5px;">'+carT+'</div>'+op_ele+'</div>';
+        },
+        del:function (id,trainName,exeDate){
+            var isdel = confirm("确定要删除 "+exeDate+' 的 '+trainName+"么？");
+            if(!isdel){
+                return;
+            }
+            $.get("/admin/delexetrain?id="+id,function (data,status,xhr){
+                if(data.code==10000){
+                    exeTrainShow.init();
+                }else{
+                    $("#tip").text("删除执行车次失败");
+                    console.log(data.msg)
+                }
+            },"json");
+        },
+        addcar:function (){
 
         },
     };
+
+    function arrToTable(data,c){
+        // t_class
+        // headNames [str]  dNames [{n,f}]
+        var t_class = c.t_class===undefined?'class=pure-table':('class="'+c.t_class+'"');
+        var t_head = '<table '+t_class+'> <thead> <tr> '+c.headNames.map(function (n){return '<th>'+n+'</th>'}).join(' ')+' </tr> </thead> <tbody>';
+        var t_end = '</tbody> </table>';
+
+        function omg(d){
+            return c.dNames.map(function (nf){
+                var raw = d[nf.n];
+                if(nf.f===undefined){
+                    return '<td>'+raw+'</td>';
+                }else{
+                    return '<td>'+nf.f(raw)+'</td>';
+                }
+            }).join(' ');
+        }
+        var t_body = data.map(function (d,index,arr){
+            var no = index+1;
+            var odd = no%2==0?'class="pure-table-odd"':''
+            return '<tr '+odd+'> '+omg(d)+' </tr>';
+        }).join(" ");
+        return t_head+t_body+t_end;
+    };
+
+    function x2 (d){
+        return d*2;
+    }
+    var xxx = arrToTable([{"a":1,"b":2,"c":3},{"a":4,"b":5,"c":6}],{"t_class":"pure-table","headNames":[,"a","b","c"],"dNames":[{"n":"a","f":x2},{"n":"b","f":x2},{"n":"c","f":x2}]});
 
 </script>
 <div class="nav">
@@ -573,11 +744,11 @@
         <div class="inb" sec:authorize="isAuthenticated()">
             <div class="inb" sec:authorize="hasRole('admin')">
                 <span class="textRight">|</span>
-                <a class="textRight" >管理操作:</a>
+                <span class="textRight" >管理操作:</span>
                 <a class="textRight" href="#" onclick="adminOp.init();return false" >管理Admin</a>
                 <a class="textRight" href="#" onclick="stationOp.init();return false" >车站</a>
                 <a class="textRight" href="#" onclick="trainShow.init();return false" >车次</a>
-                <a class="textRight" >执行车次</a>
+                <a class="textRight" href="#" onclick="exeTrainShow.init();return false" >执行车次</a>
                 <span class="textRight">|</span>
             </div>
             <a class="textRight" >查看订单</a>

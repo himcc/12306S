@@ -19,4 +19,7 @@ public interface TrainDAO {
 
     @Delete("delete from t_train where id=#{id}")
     public int deleteTrain(int id);
+
+    @Select("select * from t_train where train_name=#{name}")
+    public TrainEntity getTrainByName(String name);
 }

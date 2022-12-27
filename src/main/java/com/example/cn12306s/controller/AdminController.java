@@ -2,9 +2,11 @@ package com.example.cn12306s.controller;
 
 import com.example.cn12306s.config.DBUserDetailsService;
 import com.example.cn12306s.dto.RetData;
+import com.example.cn12306s.entity.ExeTrainEntity;
 import com.example.cn12306s.entity.StationEntity;
 import com.example.cn12306s.entity.TrainEntity;
 import com.example.cn12306s.entity.UserEntity;
+import com.example.cn12306s.service.ExeTrainService;
 import com.example.cn12306s.service.StationService;
 import com.example.cn12306s.service.TrainService;
 import com.example.cn12306s.service.UserService;
@@ -17,6 +19,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.sql.Date;
 import java.util.List;
 
 @RestController
@@ -30,6 +33,9 @@ public class AdminController {
 
     @Autowired
     private TrainService trainService;
+
+    @Autowired
+    private ExeTrainService exeTrainService;
 
     @GetMapping("/admin/getalluser")
     public RetData getAllUser(){
@@ -144,4 +150,59 @@ public class AdminController {
         }
 
     }
+
+    @PostMapping("/admin/addexetrain")
+    public RetData addExeTrain(@RequestParam String trainName,@RequestParam String exeDate,@RequestParam Long saleTs){
+        RetData ret = new RetData();
+
+        try{
+            ExeTrainEntity exeTrain = new ExeTrainEntity();
+
+            exeTrain.setTrainName(trainName);
+            exeTrain.setExeDate(Date.valueOf(exeDate));
+            exeTrain.setSaleTs(saleTs);
+
+            exeTrainService.addExeTrain(exeTrain);
+
+            ret.setCode(10000);
+            ret.setMsg("成功！");
+            return ret;
+        }catch (DuplicateKeyException e){
+            ret.setCode(10001);
+            ret.setMsg(e.getClass().getName()+" "+e.getLocalizedMessage());
+            return ret;
+        }catch (Exception e){
+            e.printStackTrace();
+            ret.setCode(10002);
+            ret.setMsg(e.getClass().getName()+" "+e.getLocalizedMessage());
+            return ret;
+        }
+    }
+
+    @GetMapping("/admin/getallexetrain")
+    public RetData getAllExeTrain(){
+        List<ExeTrainEntity> allExeTrain = exeTrainService.getAllExeTrain();
+        RetData ret = new RetData();
+        ret.setCode(10000);
+        ret.setMsg("ok");
+        ret.setData(allExeTrain);
+        return ret;
+    }
+
+    @GetMapping("/admin/delexetrain")
+    public RetData delAllExeTrain(@RequestParam Integer id){
+        RetData ret = new RetData();
+        try{
+            exeTrainService.deleteExeTrain(id);
+            ret.setCode(10000);
+            ret.setMsg("ok");
+            return ret;
+        }catch (Exception e){
+            e.printStackTrace();
+            ret.setCode(10002);
+            ret.setMsg(e.getClass().getName()+" "+e.getLocalizedMessage());
+            return ret;
+        }
+    }
+
 }

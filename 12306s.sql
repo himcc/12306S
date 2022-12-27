@@ -48,7 +48,32 @@ create table t_train (
 insert into t_train (train_name,station_json,car_json) values ('G100','[{"id":1,"stationName":"北京西站","arriveMin":0,"leaveMin":0},{"id":2,"stationName":"石家庄站","arriveMin":90,"leaveMin":95},{"id":3,"stationName":"郑州东站","arriveMin":150,"leaveMin":150}]','[{"id":1,"seatType":"一等座","seatNum":80},{"id":2,"seatType":"二等座","seatNum":120}]');
 insert into t_train (train_name,station_json,car_json) values ('G101','[{"id":1,"stationName":"北京西站","arriveMin":0,"leaveMin":0},{"id":2,"stationName":"石家庄站","arriveMin":90,"leaveMin":95},{"id":3,"stationName":"郑州东站","arriveMin":150,"leaveMin":150}]','[{"id":1,"seatType":"一等座","seatNum":80},{"id":2,"seatType":"二等座","seatNum":120}]');
 
--- test
-use db_12306; show tables ;
-use db_12306; desc t_user;
-use db_12306; select * from t_user;
+
+-- t_exe_train
+DROP TABLE IF EXISTS t_exe_train;
+create table t_exe_train (
+    id  int NOT NULL auto_increment,
+    train_name varchar(10) NOT NULL ,
+    exe_date date NOT NULL ,
+    sale_ts bigint NOT NULL ,
+    station_json text NOT NULL comment '[{id,stationName,arriveMin,leaveMin}]',
+    car_json text NOT NULL comment '[{id,seatType,seatNum}]  seatType:商务座、一等座、二等座、硬卧、软卧、硬座、无座',
+    PRIMARY KEY ( id ),
+    unique key name_uniq (train_name,exe_date)
+) engine=innodb,charset=utf8mb4,comment='exe train table';
+
+DROP TABLE IF EXISTS t_exe_train_station;
+create table t_exe_train_station (
+    id  int NOT NULL auto_increment,
+    exe_train_id int not null,
+    train_name varchar(10) NOT NULL ,
+    station_no int not null,
+    station_name varchar(10) NOT NULL ,
+    city_name varchar(10) NOT NULL ,
+    sale_ts bigint not null,
+    arrive_ts  bigint not null,
+    leave_ts bigint not null,
+
+    PRIMARY KEY ( id ),
+    unique key name_uniq (exe_train_id,station_no)
+) engine=innodb,charset=utf8mb4,comment='exe train station table';
