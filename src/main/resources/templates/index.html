@@ -31,6 +31,53 @@
             margin: 0 auto;
             width: fit-content;
         }
+
+        table {
+            border-collapse: collapse;
+            border-spacing: 0;
+        }
+
+        td,th {
+            padding: 0;
+        }
+
+        .pure-table {
+            border-collapse: collapse;
+            border-spacing: 0;
+            empty-cells: show;
+            border: 1px solid #cbcbcb;
+        }
+
+        .pure-table caption {
+            color: #000;
+            font: italic 85%/1 arial,sans-serif;
+            padding: 1em 0;
+            text-align: center;
+        }
+
+        .pure-table td,.pure-table th {
+            border-left: 1px solid #cbcbcb;
+            border-width: 0 0 0 1px;
+            font-size: inherit;
+            margin: 0;
+            overflow: visible;
+            padding: .5em 1em;
+        }
+
+        .pure-table thead {
+            background-color: #e0e0e0;
+            color: #000;
+            text-align: left;
+            vertical-align: bottom;
+        }
+
+        .pure-table td {
+            background-color: white;
+        }
+
+        .pure-table-odd td {
+            background-color: #f2f2f2;
+        }
     </style>
     <title>12306S</title>
 </head>
@@ -66,7 +113,7 @@
     };
     function chgpwd(){
         changepwd.init();
-    }
+    };
 
 
     var adminOp = {
@@ -117,8 +164,400 @@
             $("#mainbox").append(this.ele);
             $.get("/admin/getalluser",p.handleAllUser,"json");
         }
-    }
+    };
 
+
+
+
+    var stationOp = {
+        init_ele:`
+        <div id="tip" style="width:100%;margin-bottom: 1rem;color: red;">&nbsp;</div>
+        <div id="opBox"></div>
+        `,
+        init:function (){
+            var p = this;
+            $("#mainbox").children().remove();
+
+            $("#mainbox").append(this.init_ele);
+            $.get("/admin/getallstation",p.show,"json");
+        },
+        show:function (data,status,xhr){
+            // $("#tip").text(JSON.stringify(this));         this is ajax object
+            // $("#tip").text(JSON.stringify(stationOp));    stationOp is available
+
+            if(data.code==10000){
+                var tablePre = `
+                    <table border="1">
+                      <tr>
+                        <th>车站</th>
+                        <th>城市</th>
+                      </tr>`;
+                var tr_arr = [];
+                for(var x of data.data){
+                    tr_arr.push('<tr><td class="stationName">'+x.stationName+'</td><td>'+x.cityName+'</td></tr>');
+                }
+                $("#opBox").append(tablePre+tr_arr.join(" ")+"</table>");
+
+                $("#opBox").append("<hr>");
+
+                var add_ele = `
+                车站名：<input id="stationName" type="text" style="margin-right:10px;width:100px;">
+                城市名：<input id="cityName" type="text" style="margin-right:10px;width:100px;">
+                <button id="doAdd" >添加</button>
+                `;
+
+                $("#opBox").append(add_ele);
+
+                $("#doAdd").click(stationOp.addStation);
+
+            }else{
+                $("#tip").text("车站获取失败");
+                console.log(data.msg)
+            }
+        },
+        addStation: function (){
+            var stationName = $("#stationName").val();
+            var cityName = $("#cityName").val();
+            if(stationName.length<1){
+                $("#tip").text("车站名不能为空");
+                return;
+            }
+            if(stationName.charAt(stationName.length-1)!='站'){
+                $("#tip").text("车站名需以【站】为结尾");
+                return;
+            }
+            if(cityName.length<1){
+                $("#tip").text("城市名不能为空");
+                return;
+            }
+            if(cityName.charAt(cityName.length-1)=='站'){
+                $("#tip").text("城市名不能以【站】为结尾");
+                return;
+            }
+            var duplicateStations = $(".stationName").filter(function (){
+                return $(this).text()==stationName;
+            })
+            if(duplicateStations.length>0){
+                $("#tip").text("车站名不可以重复");
+                return;
+            }else{
+                $.post("/admin/addstation",{"stationName":stationName,"cityName":cityName},stationOp.postStation,"json");
+            }
+        },
+        postStation:function (data,status,xhr){
+            if(data.code==10000){
+                stationOp.init();
+            }else{
+                $("#tip").text("车站添加失败");
+                console.log(data.msg)
+            }
+        },
+    };
+
+
+    var trainAdd = {
+        init_ele:`
+        <div id="tip" style="width:100%;margin-bottom: 1rem;color: red;">&nbsp;</div>
+        <div id="opBox"></div>
+        `,
+        maxTime:"",
+        stations:new Map(),
+        stationData:[],
+        carData:[],
+        init:function (){
+            trainAdd.maxTime="";
+            trainAdd.stations=new Map();
+            trainAdd.stationData=[];
+            trainAdd.carData=[];
+            var p = this;
+            $("#mainbox").children().remove();
+
+            $("#mainbox").append(this.init_ele);
+
+            $.get("/admin/getallstation",function (data,status,xhr){
+                if(data.code==10000){
+                    var station_arr = [];
+                    for(var x of data.data){
+                        station_arr.push(x.stationName);
+                    }
+                    trainAdd.init2(station_arr);
+                }else{
+                    $("#tip").text("车站获取失败");
+                    console.log(data.msg)
+                }
+            },"json");
+        },
+        addCar:function (){
+            $("#tip").text(" ").append("<span>&nbsp;</span>");;
+            var num = parseInt($("#seatNum").val());
+            if(num<1 || isNaN(num)){
+                $("#tip").text("座位数量未设置");
+                return;
+            }
+            var a = $("#seatTypeSelect").find("option:selected").text();
+            var b = $("#seatTypeSelect").val();
+
+            var no = $("#seatBody").children().length+1;
+
+            $("#seatBody").append('<tr><td>'+no+'</td><td>'+b+'</td><td>'+num+'</td></tr>');
+
+            trainAdd.carData.push({"id":no,"seatType":b,"seatNum":num});
+        },
+        addStation:function (){
+            $("#tip").text(" ").append("<span>&nbsp;</span>");;
+            var daoTime = $("#daoTime").val();
+            var chuTime = $("#chuTime").val();
+            var daoDay = parseInt($("#daoDay").val());
+            var chuDay = parseInt($("#chuDay").val());
+
+            if(daoDay<1 ||daoDay>9 || chuDay<1 || chuDay>9){
+                $("#tip").text("站点的 到站天数 和 发车天数 应该在 0~9");
+                return;
+            }
+            if(daoTime==''){
+                $("#tip").text("到站时间未设置");
+                return;
+            }
+            if(chuTime==''){
+                $("#tip").text("发车时间未设置");
+                return;
+            }
+            if((daoDay+' '+daoTime)>(chuDay+' '+chuTime)){
+                $("#tip").text("发车时间 早于 到站时间");
+                return;
+            }
+            if(trainAdd.maxTime>=(daoDay+' '+daoTime)){
+                $("#tip").text("新站点的 到站时间 比已有站点最大时间还早");
+                return;
+            }
+
+            var no = $("#stationBody").children().length+1;
+
+            var stationName = $("#stationSelect").val();
+
+            if(trainAdd.stations.has(stationName)){
+                $("#tip").text("站点重复");
+                return;
+            }
+
+            $("#stationBody").append('<tr><td>'+no+'</td><td>'+stationName+'</td><td>第<span>'+daoDay+'</span>天 <span>'+daoTime+'</span></td><td>第<span>'+chuDay+'</span>天 <span>'+chuTime+'</span></td></tr>');
+
+            trainAdd.stations.set(stationName,"");
+            trainAdd.maxTime=(chuDay+' '+chuTime);
+
+            function getMin(dayNum,minstr){
+                var hourMin = minstr.split(":");
+                var h = parseInt(hourMin[0]);
+                var m = parseInt(hourMin[1]);
+                return (dayNum-1)*24*60+h*60+m;
+            }
+
+            trainAdd.stationData.push({"id":no,"stationName":stationName,"arriveMin":getMin(daoDay,daoTime),"leaveMin":getMin(chuDay,chuTime)});
+
+            // console.log(JSON.stringify(trainAdd.stationData));
+
+        },
+        save:function (){
+            $("#tip").text(" ").append("<span>&nbsp;</span>");;
+            var trainName = $("#trainName").val();
+            if(trainName==''){
+                $("#tip").text("车次未填");
+                return;
+            }
+            if(trainAdd.stationData.length<2){
+                $("#tip").text("站点数量应该>=2");
+                return;
+            }
+            if(trainAdd.carData.length<1){
+                $("#tip").text("车厢数应该>=1");
+                return;
+            }
+            $.post("/admin/addtrain",{"trainName":trainName,"stationJson":JSON.stringify(trainAdd.stationData),"carJson":JSON.stringify(trainAdd.carData)},function (data,status,xhr){
+                if(data.code==10000){
+                    trainShow.init();
+                }else if(data.code==10001){
+                    $("#tip").text("车次已被占用");
+                }else{
+                    $("#tip").text("添加失败");
+                    console.log(data.msg)
+                }
+            },"json");
+        },
+        init2:function (station_arr){
+            function genStationSelect(arr){
+                return '<select id="stationSelect">'+arr.map(function (x){
+                    return '<option>'+x+'</option>';
+                }).join(" ") +'</select>';
+            }
+
+            var ccc = `
+                <div style="text-align:center">
+                    <div style="display: inline-block;vertical-align:top;padding: 5px;">
+                        <table class="pure-table"> <thead> <tr> <th>#</th> <th>站点</th> <th>到站时间</th> <th>发车时间</th> </tr> </thead>
+                        <tbody id="stationBody">
+                        </tbody> </table>
+                        <hr>
+                        <div>
+                            站点:`+genStationSelect(station_arr)+`
+                            <br>
+                            到站时间: 第<input id="daoDay" type="number" style="width: 30px;" required value="1">天，<input id="daoTime" type="time" required>
+                            <br>
+                            发车时间: 第<input id="chuDay" type="number" style="width: 30px;" required value="1">天，<input id="chuTime" type="time" required>
+                            <br>
+                            <button id="addStation" style="margin-top: 5px;" onclick="trainAdd.addStation()">添加</button>
+                        </div>
+                    </div>
+                    <div style="display: inline-block;vertical-align:top;padding: 5px;">
+                        <table class="pure-table"> <thead> <tr> <th>#</th> <th>座位类型</th> <th>数量</th> </tr> </thead>
+                        <tbody id="seatBody">
+                        </tbody> </table>
+                        <hr>
+                        <div>
+                            类型:<select id="seatTypeSelect">
+                                <option>商务座</option>
+                                <option>一等座</option>
+                                <option>二等座</option>
+                                <option>硬卧</option>
+                                <option>软卧</option>
+                                <option>硬座</option>
+                                <option>无座</option>
+                            </select>
+                            <br/>
+                            数量:
+                            <input id="seatNum" type="number" style="width: 50px;" required>
+                            <br/>
+                            <button id="addCar" style="margin-top: 5px;" onclick="trainAdd.addCar()">添加</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            var a= '<div  style="width: 100%;background-color: #e5eecc;border: 1px solid #c3c3c3;">车次：<input id="trainName" type="text" style="margin-left:10px;width:60px;"></div>';
+            var b = `
+                <div style="width: 100%;background-color: #e5eecc;border: 1px solid #c3c3c3">`
+                +ccc+`
+                </div>
+                <button style="margin-top: 5px;" onclick="trainAdd.save()">保存</button>
+            `;
+
+            $("#opBox").append(a+b);
+
+        },
+    };
+
+
+    var trainShow = {
+        init_ele:`
+        <div id="tip" style="width:100%;margin-bottom: 1rem;color: red;">&nbsp;</div>
+        <div id="opBox"></div>
+        `,
+        init:function (){
+            var p = this;
+            $("#mainbox").children().remove();
+
+            $("#mainbox").append(this.init_ele);
+            $.get("/admin/getalltrain",p.show,"json");
+        },
+        show: function (data,status,xhr){
+            if(data.code==10000){
+                $("#opBox").append('<div style="width: 100%;"><button style="text-decoration: none;" href="#" onclick="trainAdd.init();return false" >添加车次</button></div><br/>');
+
+                if(data.data.length<1){
+                    $("#opBox").append("没有车次");
+                    return;
+                }
+
+                var ele_arr = data.data.map(function (d){
+                    var a= '<div id="t_'+d.trainName+'" class="trainHead" style="width: 100%;background-color: #e5eecc;border: 1px solid #c3c3c3;">'+d.trainName+'</div>';
+                    var b = '<div id="desc_'+d.trainName+'" style="display:none;width: 100%;background-color: #e5eecc;border: 1px solid #c3c3c3">'+trainShow.showDetail(d)+'</div>';
+                    return a+b;
+                });
+                $("#opBox").append('<div style="width: 650px;">'+ele_arr.join(" ")+'</div>');
+                $(".trainHead").click(function (){
+                    var n = $(this).attr('id').split('_')[1];
+                    var actid = "desc_"+n;
+                    $("#"+actid).slideToggle("fast");
+                });
+            }else{
+                $("#tip").text("获取车次失败");
+                console.log(data.msg)
+            }
+        },
+        showDetail:function (d){
+            var stationObj =   JSON.parse(d.stationJson);
+            var carObj = JSON.parse(d.carJson);
+
+            function ttt(min){
+                var h=Math.floor(min/60);
+                var m=min%60;
+
+                return h+' 时 '+m+' 分';
+            }
+
+            var station_head = '<table class="pure-table"> <thead> <tr> <th>#</th> <th>站点</th> <th>到站时间</th> <th>发车时间</th> </tr> </thead> <tbody>';
+            var station_end = '</tbody> </table>';
+
+            var station_body = stationObj.map(function (d,index,arr){
+                var no = index+1;
+                var odd = no%2==0?'class="pure-table-odd"':''
+                return '<tr '+odd+'> <td>'+no+'</td> <td>'+d.stationName+'</td> <td>'+ttt(d.arriveMin)+'</td> <td>'+ttt(d.leaveMin)+'</td> </tr>';
+            }).join(" ");
+
+            var car_head = '<table class="pure-table"> <thead> <tr> <th>#</th> <th>座位类型</th> <th>数量</th> </tr> </thead> <tbody>';
+            var car_end = '</tbody> </table>';
+
+            var car_body = carObj.map(function (d,index,arr){
+                var no = index+1;
+                var odd = no%2==0?'class="pure-table-odd"':''
+                return '<tr '+odd+'> <td>'+no+'</td> <td>'+d.seatType+'</td> <td>'+d.seatNum+'</td> </tr>';
+            }).join(" ");
+
+            var op_ele = `
+                <div style="padding: 5px;">
+                <button style="margin-left:5px;" onclick="trainShow.del(`+d.id+',\''+d.trainName+`\')">删除</span></button>
+                <button style="margin-left:5px;" onclick="trainShow.exe(`+d+`)">执行</span></button>
+                </div>
+            `;
+
+            return '<div style="text-align:center"><div style="display: inline-block;vertical-align:top;padding: 5px;">'+station_head+station_body+station_end+'</div><div style="display: inline-block;vertical-align:top;padding: 5px;">'+car_head+car_body+car_end+'</div>'+op_ele+'</div>';
+        },
+        del:function (id,trainName){
+            var isdel = confirm("确定要删除 "+trainName+"么？");
+            if(!isdel){
+                return;
+            }
+            $.get("/admin/deltrain?id="+id,function (data,status,xhr){
+                if(data.code==10000){
+                    trainShow.init();
+                }else{
+                    $("#tip").text("删除车次失败");
+                    console.log(data.msg)
+                }
+            },"json");
+        },
+        exe:function (d){
+            exeTrainGen.init(d);
+        },
+    };
+
+    var exeTrainGen = {
+        init_ele:`
+        <div id="tip" style="width:100%;margin-bottom: 1rem;color: red;">&nbsp;</div>
+        <div id="opBox"></div>
+        `,
+        init:function (d){
+            var p = this;
+            $("#mainbox").children().remove();
+
+            $("#mainbox").append(this.init_ele);
+
+            $("#opBox").append('<h3>生成执行车次</h3><hr/>');
+
+            $("#opBox").append('<input type="text" name="k" style="width:60px" readonly value="'+k+'" >')
+
+
+        },
+    };
 
 </script>
 <div class="nav">
@@ -136,8 +575,8 @@
                 <span class="textRight">|</span>
                 <a class="textRight" >管理操作:</a>
                 <a class="textRight" href="#" onclick="adminOp.init();return false" >管理Admin</a>
-                <a class="textRight" >车站</a>
-                <a class="textRight" >车次</a>
+                <a class="textRight" href="#" onclick="stationOp.init();return false" >车站</a>
+                <a class="textRight" href="#" onclick="trainShow.init();return false" >车次</a>
                 <a class="textRight" >执行车次</a>
                 <span class="textRight">|</span>
             </div>
