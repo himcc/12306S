@@ -17,7 +17,7 @@
         .inb{
             display: inline-block;
         }
-        #tiketBtn{
+        .tiketBtn{
             background-color: #007bff;
             border-color: #007bff;
             color: #fff;
@@ -60,7 +60,8 @@
 
         .pure-table td,.pure-table th {
             border-left: 1px solid #cbcbcb;
-            border-width: 0 0 0 1px;
+            border-bottom: 1px solid #cbcbcb;
+            border-width: 0 0 1px 1px;
             font-size: inherit;
             margin: 0;
             overflow: visible;
@@ -81,11 +82,42 @@
         .pure-table-odd td {
             background-color: #f2f2f2;
         }
+
+        div.queryItem{
+            display: inline-block;
+            margin: 5px 15px;
+        }
     </style>
     <title>12306S</title>
 </head>
 <body>
 <script>
+
+    var exp={};
+
+    function setCookie(cname, cvalue, exdays) {
+        console.log("setCookie "+cname+" : "+cvalue)
+        var d = new Date();
+        d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+        var expires = "expires="+d.toUTCString();
+        document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+    }
+
+    function getCookie(cname) {
+        var name = cname + "=";
+        var ca = document.cookie.split(';');
+        for(var i = 0; i < ca.length; i++) {
+            var c = ca[i];
+            while (c.charAt(0) == ' ') {
+                c = c.substring(1);
+            }
+            if (c.indexOf(name)  == 0) {
+                return c.substring(name.length, c.length);
+            }
+        }
+        return "";
+    }
+
     var changepwd={
         ele:`
         <div id="tip" style="width:100%;margin-bottom: 1rem;color: red;">&nbsp;</div>
@@ -371,6 +403,10 @@
                 $("#tip").text("站点数量应该>=2");
                 return;
             }
+            if(trainAdd.stationData.length>20){
+                $("#tip").text("站点最多20个");
+                return;
+            }
             if(trainAdd.carData.length<1){
                 $("#tip").text("车厢数应该>=1");
                 return;
@@ -592,6 +628,7 @@
                 return;
             }
             var saleTs = Date.parse(saleTsS);
+            console.log('saleTs '+saleTsS+' '+saleTs);
             $.post("/admin/addexetrain",{"trainName":trainName,"exeDate":exeDateS,"saleTs":saleTs},function (data,status,xhr){
                 if(data.code==10000){
                     exeTrainShow.init();
@@ -608,7 +645,7 @@
         <div id="tip" style="width:100%;margin-bottom: 1rem;color: red;">&nbsp;</div>
         <div id="opBox"></div>
         `,
-        init:function (trainName){
+        init:function (){
             var p = this;
             $("#mainbox").children().remove();
 
@@ -628,7 +665,7 @@
                 function getTitle(d){
                     var stationObj =   JSON.parse(d.stationJson);
                     var haha = '#'+d.id+' '+d.trainName+" "+d.exeDate+' ('+stationObj[0].stationName+'->'+stationObj[stationObj.length-1].stationName+')'
-                        + '<div style="display: inline-block;float: right">开始卖票时间: '+new Date(d.exeDate).toISOString().substring(0,16)+'</div>';
+                        + '<div style="display: inline-block;float: right">开始卖票时间: '+new Date(d.saleTs+8*60*60*1000).toISOString().substring(0,16)+'</div>';
                     return haha;
                 }
                 var ele_arr = data.data.map(function (d){  // [{id,trainName,exeDate,saleTs,stationJson,carJson}]
@@ -730,11 +767,224 @@
     }
     var xxx = arrToTable([{"a":1,"b":2,"c":3},{"a":4,"b":5,"c":6}],{"t_class":"pure-table","headNames":[,"a","b","c"],"dNames":[{"n":"a","f":x2},{"n":"b","f":x2},{"n":"c","f":x2}]});
 
+
+    var ticketQuery = {
+        init_ele:`
+        <div id="tip" style="width:100%;margin-bottom: 1rem;color: red;">&nbsp;</div>
+        <div id="opBox">
+        </div>
+        `,
+        shareData:{},
+        init:function (){
+            var p = this;
+            $("#mainbox").children().remove();
+
+            $("#mainbox").append(this.init_ele);
+
+            $.get("/getallstation",function (data,status,xhr){
+                if(data.code==10000){
+                    var cont = ticketQuery.content(data.data);
+                    $("#opBox").append(cont);
+
+                    var startPos = getCookie('startPos');
+                    if(startPos!=''){
+                        $("#startPos").val(startPos);
+                    }
+                    var endPos = getCookie('endPos');
+                    if(endPos!=''){
+                        $("#endPos").val(endPos);
+                    }
+                    var startDate = getCookie('startDate');
+                    if(startDate!=''){
+                        $("#startDate").val(startDate);
+                    }
+
+                }else if(data.code==302){
+                    window.location.pathname='/login'
+                }else{
+                    $("#tip").text("获取车站信息失败");
+                    console.log(data.msg)
+                }
+            },"json");
+
+        },
+        content: function (stationArr){
+            var option = stationArr.map(function (item){
+                return '<option>'+item+'</option>';
+            }).join(' ');
+            var ele=`
+                    <div style="border: 1px solid #298cce;background: #eef1f8;">
+                        <div class="queryItem">出发地<br/><select id="startPos" onchange="setCookie('startPos',this.value,300)">`+option+`</select></div>
+                        <div class="queryItem">目的地<br/><select id="endPos" onchange="setCookie('endPos',this.value,300)">`+option+`</select></div>
+                        <div class="queryItem">出发日<br/><input type="date" id="startDate" onchange="setCookie('startDate',this.value,300)"></div>
+                        <div class="queryItem"><button id="qseat" onclick="ticketQuery.qseat()">查询</button></div>
+                    </div>
+                    <hr/>
+                    <div>
+                        <table class="pure-table" style="font-size: 12px;"> <thead style="background: #eef1f8;">
+                            <tr>
+                                <th>车次</th> <th>出发站<br/>到达站</th> <th>出发时间<br/>到达时间</th> <th>历时</th> <th>商务座</th> <th>一等座</th> <th>二等座</th> <th>硬卧</th> <th>软卧</th> <th>硬座</th> <th>无座</th> <th></th>
+                            </tr>
+                            </thead><tbody></tbody>
+                        </table>
+                    </div>
+            `;
+            return ele;
+        },
+        qseat:function (){
+            $("#tip").text(" ").append("<span>&nbsp;</span>");
+            var startPos = $("#startPos").val();
+            var endPos = $("#endPos").val();
+            var startDate = $("#startDate").val();
+
+            if(startDate==''){
+                $("#tip").text("出发日未选");
+                return;
+            }
+            if(startPos==endPos){
+                $("#tip").text("出发地、目的地不能相同");
+                return;
+            }
+            $.get("/querySeat?startDate="+startDate+'&startPos='+encodeURIComponent(startPos)+'&endPos='+encodeURIComponent(endPos),function (data,status,xhr){
+                if(data.code==10000){
+                    ticketQuery.showSeat(data.data);
+                    ticketQuery.shareData.seat=data.data;
+                }else{
+                    $("#tip").text("获取车站信息失败");
+                    console.log(data.msg)
+                }
+            },"json");
+        },
+        showSeat:function (data){
+            function nullTohh(somed){
+                if(somed==null){
+                    return '--';
+                }else{
+                    return somed;
+                }
+            }
+            function num2(num){
+                if(num<10){
+                    return '0'+num.toString();
+                }else{
+                    return num.toString();
+                }
+            }
+            function baseTr(che,no){
+
+                function tFormat(ts){
+                    var dt = new Date(ts);
+                    return num2(dt.getHours())+':'+num2(dt.getMinutes());
+                }
+                function durFormat(ms){
+                    var min=Math.floor(ms/1000/60);
+                    var h=Math.floor(min/60);
+                    var m=min%60;
+                    return num2(h)+':'+num2(m);
+                }
+
+                var odd = no%2==0?'class="pure-table-odd"':'';
+                var ret = `<tr `+odd+`> `
+                    +`<td class="doTrainName" >`+che.trainName+`</td>`
+                    +`<td>`+che.leaveStation+`<br/>`+che.arriveStation+`</td>`
+                    +`<td>`+tFormat(che.leaveTs)+`<br/>`+tFormat(che.arriveTs)+`</td>`
+                    +`<td>`+durFormat(che.arriveTs-che.leaveTs)+`</td>`
+                    +`<td class="doPrice">`+nullTohh(che.seatANum)+`</td>`
+                    +`<td class="doPrice">`+nullTohh(che.seatBNum)+`</td>`
+                    +`<td class="doPrice">`+nullTohh(che.seatCNum)+`</td>`
+                    +`<td class="doPrice">`+nullTohh(che.seatDNum)+`</td>`
+                    +`<td class="doPrice">`+nullTohh(che.seatENum)+`</td>`
+                    +`<td class="doPrice">`+nullTohh(che.seatFNum)+`</td>`
+                    +`<td>`+nullTohh(che.seatGNum)+`</td>`
+                    +`<td><a href="#" id="tiketBtn" class="tiketBtn" onclick="ticketQuery.buy(`+no+`);return false">订票</a></td>`
+                    +` </tr>`;
+                return ret;
+            }
+            function priceTr(che){
+                function priceFormat(p){
+                    if(p==null){
+                        return '';
+                    }else{
+                        return '<span style="color: #fc8302;">¥'+p+'</span';
+                    }
+                }
+                var ret = `<tr style="display: none;"> `
+                    +`<td></td>`
+                    +`<td></td>`
+                    +`<td></td>`
+                    +`<td></td>`
+                    +`<td>`+priceFormat(che.seatAPrice)+`</td>`
+                    +`<td>`+priceFormat(che.seatBPrice)+`</td>`
+                    +`<td>`+priceFormat(che.seatCPrice)+`</td>`
+                    +`<td>`+priceFormat(che.seatDPrice)+`</td>`
+                    +`<td>`+priceFormat(che.seatEPrice)+`</td>`
+                    +`<td>`+priceFormat(che.seatFPrice)+`</td>`
+                    +`<td>`+priceFormat(che.seatGPrice)+`</td>`
+                    +`<td></td>`
+                    +` </tr>`;
+                return ret;
+            }
+            function timeTr(che){
+                function timeF(minoffset){
+                    var h=Math.floor(minoffset/60);
+                    var m=minoffset%60;
+                    return num2(h)+':'+num2(m);
+                }
+                var stationObj = JSON.parse(che.stationJson);
+                var stationC = {
+                    "headNames":[,"站序","站名","到站时间","出发时间"],
+                    "dNames":[{"n":"id"},{"n":"stationName"},{"n":"arriveMin","f":timeF},{"n":"leaveMin","f":timeF}]
+                };
+                var stationT = arrToTable(stationObj,stationC);
+
+                return '<tr  style="display: none;"><td colspan="12">'+stationT+'</td></tr>';
+            }
+            var trs = data.map(function (che,index,arr){
+                return baseTr(che,index+1)+priceTr(che,index+1)+timeTr(che,index+1);
+            }).join(' ');
+            console.log(trs);
+            $("tbody").children().remove();
+            $("tbody").append(trs);
+
+            $(".doTrainName").click(function (){
+                $(this).parent().next().next().slideToggle("fast");
+            });
+            $(".doPrice").click(function (){
+                $(this).parent().next().slideToggle("fast");
+            });
+        },
+        buy:function (no){
+            var seatInfo = ticketQuery.shareData.seat[no-1];
+            createOrder.init(seatInfo);
+        }
+    };
+
+    var createOrder ={
+        init_ele:`
+        <div id="tip" style="width:100%;margin-bottom: 1rem;color: red;">&nbsp;</div>
+        <div id="opBox">
+        </div>
+        `,
+        shareData:{},
+        init:function (seatInfo){
+            var p = this;
+            $("#mainbox").children().remove();
+
+            $("#mainbox").append(this.init_ele);
+
+            $("#opBox").append('<h3>创建订单</h3><hr/>');
+
+
+
+
+        },
+    };
+
 </script>
 <div class="nav">
     <div class="inb">
         <span class="textRight">12306S</span>
-        <a href="#" id="tiketBtn" class="textRight" onclick="alert('ffff');return false">订票</a>
+        <a href="#" id="tiketBtn" class="textRight tiketBtn" onclick="ticketQuery.init();return false">订票</a>
     </div>
     <div class="inb" style="float:right">
         <div class="inb" sec:authorize="!isAuthenticated()">

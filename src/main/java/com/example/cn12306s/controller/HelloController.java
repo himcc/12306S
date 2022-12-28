@@ -1,9 +1,15 @@
 package com.example.cn12306s.controller;
 
 import com.example.cn12306s.config.DBUserDetailsService;
+import com.example.cn12306s.dto.QueryExeTrain;
+import com.example.cn12306s.dto.QueryInfo;
 import com.example.cn12306s.dto.RetData;
+import com.example.cn12306s.entity.StationEntity;
 import com.example.cn12306s.entity.UserEntity;
+import com.example.cn12306s.service.SeatService;
+import com.example.cn12306s.service.StationService;
 import com.example.cn12306s.service.UserService;
+import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -13,13 +19,19 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.util.Date;
+import java.util.*;
 
 @RestController
 public class HelloController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private SeatService seatService;
+
+    @Autowired
+    private StationService stationService;
 
     public static long getUid() throws Exception {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -84,6 +96,91 @@ public class HelloController {
             ret.setMsg(e.getClass().getName()+" "+e.getLocalizedMessage());
             return ret;
         }
+    }
+
+    @GetMapping("/querySeat")
+    public RetData querySeat(@RequestParam String startDate,@RequestParam String startPos,@RequestParam String endPos){
+        RetData ret = new RetData();
+
+        try{
+            QueryInfo q = new QueryInfo();
+            long nowTs = System.currentTimeMillis();
+
+            DateTime dt = new DateTime(startDate);
+            long startTs = dt.getMillis();
+            long endTs = dt.plusDays(1).getMillis();
+
+            if(nowTs>startTs){
+                startTs=nowTs;
+            }
+
+
+
+            q.setNowTs(nowTs);
+            q.setStartTs(startTs);
+            q.setEndTs(endTs);
+            if(startPos.endsWith("站")){
+                q.setStartStation(startPos);
+            }else{
+                q.setStartCity(startPos);
+            }
+            if(endPos.endsWith("站")){
+                q.setEndStation(endPos);
+            }else{
+                q.setEndCity(endPos);
+            }
+
+            List<QueryExeTrain> queryExeTrains = seatService.querySeat(q);
+
+            ret.setCode(10000);
+            ret.setMsg("成功！");
+            ret.setData(queryExeTrains);
+            return ret;
+        }catch (DuplicateKeyException e){
+            ret.setCode(10001);
+            ret.setMsg(e.getClass().getName()+" "+e.getLocalizedMessage());
+            return ret;
+        }catch (Exception e){
+            e.printStackTrace();
+            ret.setCode(10002);
+            ret.setMsg(e.getClass().getName()+" "+e.getLocalizedMessage());
+            return ret;
+        }
+    }
+
+    @GetMapping("/getallstation")
+    public RetData getAllStation(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        RetData ret = new RetData();
+        if(authentication instanceof AnonymousAuthenticationToken){
+            ret.setCode(302);
+            ret.setMsg("ok");
+            return ret;
+        }
+
+        List<StationEntity> allStation = stationService.getAllStation();
+        Map<String, Set<String>> map = new HashMap<String, Set<String>>();
+        for(StationEntity e : allStation){
+            if(map.containsKey(e.getCityName())){
+                map.get(e.getCityName()).add(e.getStationName());
+            }else {
+                Set<String> s = new HashSet<>();
+                s.add(e.getStationName());
+                map.put(e.getCityName(),s);
+            }
+        }
+        List<String> retd = new ArrayList<String>();
+        for(Map.Entry<String, Set<String>> e : map.entrySet()){
+            retd.add(e.getKey());
+            for(String station : e.getValue()){
+                retd.add(station);
+            }
+        }
+
+        ret.setCode(10000);
+        ret.setMsg("ok");
+        ret.setData(retd);
+        return ret;
     }
 
 }

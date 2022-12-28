@@ -1,16 +1,11 @@
 package com.example.cn12306s.service.imp;
 
-import com.example.cn12306s.dao.ExeTrainDAO;
-import com.example.cn12306s.dao.ExeTrainStationDAO;
-import com.example.cn12306s.dao.StationDAO;
-import com.example.cn12306s.dao.TrainDAO;
+import com.example.cn12306s.dao.*;
+import com.example.cn12306s.utils.SeatType;
+import com.example.cn12306s.dto.TrainCar;
 import com.example.cn12306s.dto.TrainStation;
-import com.example.cn12306s.entity.ExeTrainEntity;
-import com.example.cn12306s.entity.ExeTrainStationEntity;
-import com.example.cn12306s.entity.StationEntity;
-import com.example.cn12306s.entity.TrainEntity;
+import com.example.cn12306s.entity.*;
 import com.example.cn12306s.service.ExeTrainService;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.joda.time.DateTime;
@@ -35,6 +30,9 @@ public class ExeTrainServiceImp implements ExeTrainService {
 
     @Autowired
     private StationDAO stationDAO;
+
+    @Autowired
+    private SeatDAO seatDAO;
 
     private Map<String,String> getStationCityMap(){
         HashMap<String,String> ret = new HashMap<String,String>();
@@ -80,7 +78,20 @@ public class ExeTrainServiceImp implements ExeTrainService {
             exeTrainStationDAO.addExeTrainStation(ets);
         }
 
-        // TODO insert seat
+        // insert seat
+
+        List<TrainCar> carList= mapper.readValue(e.getCarJson(),new TypeReference<List<TrainCar>>(){});
+        for(TrainCar car : carList){
+            int seatNum = car.getSeatNum();
+            for(int no=1;no <= seatNum;no++){
+                SeatEntity seat = new SeatEntity();
+                seat.setExeTrainId(e.getId());
+                seat.setCarNo(car.getId());
+                seat.setSeatType(SeatType.getId(car.getSeatType()));
+                seat.setSeatNo(no);
+                seatDAO.addSeat(seat);
+            }
+        }
     }
 
     @Override
@@ -92,7 +103,8 @@ public class ExeTrainServiceImp implements ExeTrainService {
     public void deleteExeTrain(int id) {
         exeTrainDAO.deleteExeTrain(id);
         exeTrainStationDAO.deleteExeTrainStationByExeTrainId(id);
-        // TODO  delete seat
+        // delete seat
+        seatDAO.deleteSeatByExeTrainId(id);
     }
 
 }

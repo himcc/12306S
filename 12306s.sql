@@ -77,3 +77,39 @@ create table t_exe_train_station (
     PRIMARY KEY ( id ),
     unique key name_uniq (exe_train_id,station_no)
 ) engine=innodb,charset=utf8mb4,comment='exe train station table';
+
+
+
+DROP TABLE IF EXISTS t_seat;
+create table t_seat (
+    id  bigint NOT NULL auto_increment,
+    exe_train_id int not null,
+    car_no tinyint unsigned not null,
+    seat_type tinyint unsigned NOT NULL ,
+    seat_no tinyint unsigned not null,
+
+    seg1 tinyint default 0 NOT NULL ,
+    seg2 tinyint default 0 NOT NULL ,
+    seg3 tinyint default 0 NOT NULL ,
+    seg4 tinyint default 0 NOT NULL ,
+    seg5 tinyint default 0 NOT NULL ,
+    seg6 tinyint default 0 NOT NULL ,
+    seg7 tinyint default 0 NOT NULL ,
+    seg8 tinyint default 0 NOT NULL ,
+    seg9 tinyint default 0 NOT NULL ,
+    seg10 tinyint default 0 NOT NULL ,
+    seg11 tinyint default 0 NOT NULL ,
+    seg12 tinyint default 0 NOT NULL ,
+    seg13 tinyint default 0 NOT NULL ,
+    seg14 tinyint default 0 NOT NULL ,
+    seg15 tinyint default 0 NOT NULL ,
+    seg16 tinyint default 0 NOT NULL ,
+    seg17 tinyint default 0 NOT NULL ,
+    seg18 tinyint default 0 NOT NULL ,
+    seg19 tinyint default 0 NOT NULL ,
+    seg20 tinyint default 0 NOT NULL ,
+
+    PRIMARY KEY ( id ),
+    unique key name_uniq (exe_train_id,car_no,seat_no),
+    index for_query(exe_train_id,seat_type)
+) engine=innodb,charset=utf8mb4,comment='seat table';
