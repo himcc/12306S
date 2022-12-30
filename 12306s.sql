@@ -149,5 +149,55 @@ create table t_order (
     index uniq_idx (uid,create_time)
 ) engine=innodb,charset=utf8mb4,comment='order table';
 
+-- init data
+
+INSERT INTO `t_station` VALUES (1,'北京西站','北京');
+INSERT INTO `t_station` VALUES (2,'北京南站','北京');
+INSERT INTO `t_station` VALUES (3,'石家庄站','石家庄');
+INSERT INTO `t_station` VALUES (4,'郑州站','郑州');
+INSERT INTO `t_station` VALUES (5,'郑州东站','郑州');
+INSERT INTO `t_station` VALUES (6,'武汉站','武汉');
+INSERT INTO `t_station` VALUES (7,'汉口站','武汉');
+INSERT INTO `t_station` VALUES (8,'武昌站','武汉');
+INSERT INTO `t_station` VALUES (9,'长沙站','长沙');
+INSERT INTO `t_station` VALUES (10,'长沙南站','长沙');
+INSERT INTO `t_station` VALUES (11,'广州站','广州');
+INSERT INTO `t_station` VALUES (12,'广州南站','广州');
+INSERT INTO `t_station` VALUES (13,'西安站','西安');
+INSERT INTO `t_station` VALUES (14,'西安北站','西安');
+INSERT INTO `t_station` VALUES (15,'虹桥站','上海');
+INSERT INTO `t_station` VALUES (16,'上海站','上海');
+INSERT INTO `t_station` VALUES (17,'天津南站','天津');
+INSERT INTO `t_station` VALUES (18,'济南西站','济南');
+INSERT INTO `t_station` VALUES (19,'徐州东站','徐州');
+INSERT INTO `t_station` VALUES (20,'南京南站','南京');
+INSERT INTO `t_station` VALUES (21,'成都站','成都');
+INSERT INTO `t_station` VALUES (22,'重庆站','重庆');
+INSERT INTO `t_station` VALUES (23,'杭州站','杭州');
+INSERT INTO `t_station` VALUES (24,'合肥站','合肥');
+INSERT INTO `t_station` VALUES (25,'福州站','福州');
+INSERT INTO `t_station` VALUES (26,'太原站','太原');
+INSERT INTO `t_station` VALUES (27,'贵阳站','贵阳');
+
+
+INSERT INTO `t_train` VALUES (15,'G120','[{\"id\":1,\"stationName\":\"北京南站\",\"arriveMin\":480,\"leaveMin\":480},{\"id\":2,\"stationName\":\"天津南 站\",\"arriveMin\":510,\"leaveMin\":515},{\"id\":3,\"stationName\":\"济南西站\",\"arriveMin\":570,\"leaveMin\":575},{\"id\":4,\"stationName\":\"徐州东站\",\"arriveMin\":630,\"leaveMin\":635},{\"id\":5,\"stationName\":\"南京南站\",\"arriveMin\":690,\"leaveMin\":695},{\"id\":6,\"stationName\":\"虹桥站\",\"arriveMin\":750,\"leaveMin\":750}]','[{\"id\":1,\"seatType\":\"商务座\",\"seatNum\":9},{\"id\":2,\"seatType\":\"一等座\",\"seatNum\":9},{\"id\":3,\"seatType\":\"二等座\",\"seatNum\":9},{\"id\":4,\"seatType\":\"二等座\",\"seatNum\":9}]');
+INSERT INTO `t_train` VALUES (16,'G130','[{\"id\":1,\"stationName\":\"北京西站\",\"arriveMin\":420,\"leaveMin\":420},{\"id\":2,\"stationName\":\"石家庄 站\",\"arriveMin\":480,\"leaveMin\":485},{\"id\":3,\"stationName\":\"郑州东站\",\"arriveMin\":540,\"leaveMin\":545},{\"id\":4,\"stationName\":\"武汉站\",\"arriveMin\":600,\"leaveMin\":605},{\"id\":5,\"stationName\":\"长沙南站\",\"arriveMin\":660,\"leaveMin\":665},{\"id\":6,\"stationName\":\"广州站\",\"arriveMin\":720,\"leaveMin\":720}]','[{\"id\":1,\"seatType\":\"商务座\",\"seatNum\":9},{\"id\":2,\"seatType\":\"一等座\",\"seatNum\":9},{\"id\":3,\"seatType\":\"二等座\",\"seatNum\":9},{\"id\":4,\"seatType\":\"二等座\",\"seatNum\":9}]');
+INSERT INTO `t_train` VALUES (17,'T140','[{\"id\":1,\"stationName\":\"北京西站\",\"arriveMin\":360,\"leaveMin\":360},{\"id\":2,\"stationName\":\"石家庄 站\",\"arriveMin\":420,\"leaveMin\":425},{\"id\":3,\"stationName\":\"太原站\",\"arriveMin\":480,\"leaveMin\":485},{\"id\":4,\"stationName\":\"西安站\",\"arriveMin\":540,\"leaveMin\":545},{\"id\":5,\"stationName\":\"成都站\",\"arriveMin\":600,\"leaveMin\":600}]','[{\"id\":1,\"seatType\":\"硬卧\",\"seatNum\":9},{\"id\":2,\"seatType\":\"硬座\",\"seatNum\":9},{\"id\":3,\"seatType\":\"硬座\",\"seatNum\":9}]');
+INSERT INTO `t_train` VALUES (18,'G210','[{\"id\":1,\"stationName\":\"上海站\",\"arriveMin\":720,\"leaveMin\":720},{\"id\":2,\"stationName\":\"南京南站\",\"arriveMin\":780,\"leaveMin\":785},{\"id\":3,\"stationName\":\"徐州东站\",\"arriveMin\":900,\"leaveMin\":911},{\"id\":4,\"stationName\":\"济南西站\",\"arriveMin\":960,\"leaveMin\":971},{\"id\":5,\"stationName\":\"天津南站\",\"arriveMin\":1020,\"leaveMin\":1031},{\"id\":6,\"stationName\":\"北京南站\",\"arriveMin\":1080,\"leaveMin\":1080}]','[{\"id\":1,\"seatType\":\"商务座\",\"seatNum\":9},{\"id\":2,\"seatType\":\"一等座\",\"seatNum\":9},{\"id\":3,\"seatType\":\"二等座\",\"seatNum\":9},{\"id\":4,\"seatType\":\"二等座\",\"seatNum\":9}]');
+INSERT INTO `t_train` VALUES (19,'G230','[{\"id\":1,\"stationName\":\"虹桥站\",\"arriveMin\":791,\"leaveMin\":791},{\"id\":2,\"stationName\":\"杭州站\",\"arriveMin\":851,\"leaveMin\":857},{\"id\":3,\"stationName\":\"福州站\",\"arriveMin\":911,\"leaveMin\":917},{\"id\":4,\"stationName\":\"广州南站\",\"arriveMin\":971,\"leaveMin\":971}]','[{\"id\":1,\"seatType\":\"商务座\",\"seatNum\":9},{\"id\":2,\"seatType\":\"一等座\",\"seatNum\":9},{\"id\":3,\"seatType\":\"二等座\",\"seatNum\":9},{\"id\":4,\"seatType\":\"二等座\",\"seatNum\":9}]');
+INSERT INTO `t_train` VALUES (20,'G240','[{\"id\":1,\"stationName\":\"上海站\",\"arriveMin\":441,\"leaveMin\":441},{\"id\":2,\"stationName\":\"南京南站\",\"arriveMin\":501,\"leaveMin\":506},{\"id\":3,\"stationName\":\"合肥站\",\"arriveMin\":561,\"leaveMin\":566},{\"id\":4,\"stationName\":\"汉口站\",\"arriveMin\":621,\"leaveMin\":626},{\"id\":5,\"stationName\":\"重庆站\",\"arriveMin\":681,\"leaveMin\":686},{\"id\":6,\"stationName\":\"成都站\",\"arriveMin\":741,\"leaveMin\":741}]','[{\"id\":1,\"seatType\":\"商务座\",\"seatNum\":9},{\"id\":2,\"seatType\":\"一等座\",\"seatNum\":9},{\"id\":3,\"seatType\":\"二等座\",\"seatNum\":9},{\"id\":4,\"seatType\":\"二等座\",\"seatNum\":9}]');
+INSERT INTO `t_train` VALUES (21,'G310','[{\"id\":1,\"stationName\":\"广州站\",\"arriveMin\":381,\"leaveMin\":381},{\"id\":2,\"stationName\":\"长沙南站\",\"arriveMin\":501,\"leaveMin\":506},{\"id\":3,\"stationName\":\"武昌站\",\"arriveMin\":561,\"leaveMin\":566},{\"id\":4,\"stationName\":\"郑州东站\",\"arriveMin\":621,\"leaveMin\":626},{\"id\":5,\"stationName\":\"石家庄站\",\"arriveMin\":681,\"leaveMin\":686},{\"id\":6,\"stationName\":\"北京西站\",\"arriveMin\":741,\"leaveMin\":741}]','[{\"id\":1,\"seatType\":\"商务座\",\"seatNum\":9},{\"id\":2,\"seatType\":\"一等座\",\"seatNum\":9},{\"id\":3,\"seatType\":\"二等座\",\"seatNum\":9},{\"id\":4,\"seatType\":\"二等座\",\"seatNum\":9}]');
+INSERT INTO `t_train` VALUES (22,'G320','[{\"id\":1,\"stationName\":\"广州南站\",\"arriveMin\":980,\"leaveMin\":980},{\"id\":2,\"stationName\":\"福州站\",\"arriveMin\":1040,\"leaveMin\":1045},{\"id\":3,\"stationName\":\"杭州站\",\"arriveMin\":1100,\"leaveMin\":1105},{\"id\":4,\"stationName\":\"上海站\",\"arriveMin\":1160,\"leaveMin\":1160}]','[{\"id\":1,\"seatType\":\"商务座\",\"seatNum\":9},{\"id\":2,\"seatType\":\"一等座\",\"seatNum\":9},{\"id\":3,\"seatType\":\"二等座\",\"seatNum\":9},{\"id\":4,\"seatType\":\"二等座\",\"seatNum\":9}]');
+INSERT INTO `t_train` VALUES (23,'T340','[{\"id\":1,\"stationName\":\"广州站\",\"arriveMin\":671,\"leaveMin\":671},{\"id\":2,\"stationName\":\"贵阳站\",\"arriveMin\":731,\"leaveMin\":736},{\"id\":3,\"stationName\":\"重庆站\",\"arriveMin\":791,\"leaveMin\":796},{\"id\":4,\"stationName\":\"成都站\",\"arriveMin\":851,\"leaveMin\":851}]','[{\"id\":1,\"seatType\":\"硬卧\",\"seatNum\":9},{\"id\":2,\"seatType\":\"硬座\",\"seatNum\":9},{\"id\":3,\"seatType\":\"硬座\",\"seatNum\":9}]');
+INSERT INTO `t_train` VALUES (24,'G410','[{\"id\":1,\"stationName\":\"成都站\",\"arriveMin\":671,\"leaveMin\":671},{\"id\":2,\"stationName\":\"西安站\",\"arriveMin\":731,\"leaveMin\":736},{\"id\":3,\"stationName\":\"太原站\",\"arriveMin\":791,\"leaveMin\":796},{\"id\":4,\"stationName\":\"石家庄站\",\"arriveMin\":851,\"leaveMin\":856},{\"id\":5,\"stationName\":\"北京西站\",\"arriveMin\":911,\"leaveMin\":911}]','[{\"id\":1,\"seatType\":\"商务座\",\"seatNum\":9},{\"id\":2,\"seatType\":\"一等座\",\"seatNum\":9},{\"id\":3,\"seatType\":\"二等座\",\"seatNum\":9},{\"id\":4,\"seatType\":\"二等座\",\"seatNum\":9}]');
+INSERT INTO `t_train` VALUES (25,'G420','[{\"id\":1,\"stationName\":\"成都站\",\"arriveMin\":671,\"leaveMin\":671},{\"id\":2,\"stationName\":\"重庆站\",\"arriveMin\":731,\"leaveMin\":736},{\"id\":3,\"stationName\":\"武汉站\",\"arriveMin\":791,\"leaveMin\":796},{\"id\":4,\"stationName\":\"合肥站\",\"arriveMin\":851,\"leaveMin\":856},{\"id\":5,\"stationName\":\"南京南站\",\"arriveMin\":911,\"leaveMin\":916},{\"id\":6,\"stationName\":\"虹桥站\",\"arriveMin\":971,\"leaveMin\":971}]','[{\"id\":1,\"seatType\":\"商务座\",\"seatNum\":9},{\"id\":2,\"seatType\":\"一等座\",\"seatNum\":9},{\"id\":3,\"seatType\":\"二等座\",\"seatNum\":9},{\"id\":4,\"seatType\":\"二等座\",\"seatNum\":9}]');
+INSERT INTO `t_train` VALUES (26,'G430','[{\"id\":1,\"stationName\":\"成都站\",\"arriveMin\":84,\"leaveMin\":84},{\"id\":2,\"stationName\":\"重庆站\",\"arriveMin\":144,\"leaveMin\":150},{\"id\":3,\"stationName\":\"贵阳站\",\"arriveMin\":204,\"leaveMin\":210},{\"id\":4,\"stationName\":\"长沙南站\",\"arriveMin\":264,\"leaveMin\":264}]','[{\"id\":1,\"seatType\":\"商务座\",\"seatNum\":9},{\"id\":2,\"seatType\":\"一等座\",\"seatNum\":9},{\"id\":3,\"seatType\":\"二等座\",\"seatNum\":9},{\"id\":4,\"seatType\":\"二等座\",\"seatNum\":9}]');
+INSERT INTO `t_train` VALUES (27,'G510','[{\"id\":1,\"stationName\":\"郑州东站\",\"arriveMin\":451,\"leaveMin\":451},{\"id\":2,\"stationName\":\"石家庄 站\",\"arriveMin\":571,\"leaveMin\":577},{\"id\":3,\"stationName\":\"北京西站\",\"arriveMin\":631,\"leaveMin\":631}]','[{\"id\":1,\"seatType\":\"商务座\",\"seatNum\":9},{\"id\":2,\"seatType\":\"一等座\",\"seatNum\":9},{\"id\":3,\"seatType\":\"二等座\",\"seatNum\":9},{\"id\":4,\"seatType\":\"二等座\",\"seatNum\":9}]');
+INSERT INTO `t_train` VALUES (28,'G520','[{\"id\":1,\"stationName\":\"郑州东站\",\"arriveMin\":453,\"leaveMin\":453},{\"id\":2,\"stationName\":\"徐州东 站\",\"arriveMin\":513,\"leaveMin\":518},{\"id\":3,\"stationName\":\"南京南站\",\"arriveMin\":573,\"leaveMin\":578},{\"id\":4,\"stationName\":\"上海站\",\"arriveMin\":633,\"leaveMin\":633}]','[{\"id\":1,\"seatType\":\"商务座\",\"seatNum\":9},{\"id\":2,\"seatType\":\"二等座\",\"seatNum\":9},{\"id\":3,\"seatType\":\"二等座\",\"seatNum\":9}]');
+INSERT INTO `t_train` VALUES (29,'G530','[{\"id\":1,\"stationName\":\"郑州站\",\"arriveMin\":454,\"leaveMin\":454},{\"id\":2,\"stationName\":\"武汉站\",\"arriveMin\":514,\"leaveMin\":517},{\"id\":3,\"stationName\":\"长沙站\",\"arriveMin\":574,\"leaveMin\":577}]','[{\"id\":1,\"seatType\":\"商务座\",\"seatNum\":9},{\"id\":2,\"seatType\":\"一等座\",\"seatNum\":9},{\"id\":3,\"seatType\":\"二等座\",\"seatNum\":9},{\"id\":4,\"seatType\":\"二等座\",\"seatNum\":9}]');
+INSERT INTO `t_train` VALUES (30,'G540','[{\"id\":1,\"stationName\":\"郑州站\",\"arriveMin\":393,\"leaveMin\":393},{\"id\":2,\"stationName\":\"西安站\",\"arriveMin\":453,\"leaveMin\":459},{\"id\":3,\"stationName\":\"成都站\",\"arriveMin\":573,\"leaveMin\":573}]','[{\"id\":1,\"seatType\":\"商务座\",\"seatNum\":9},{\"id\":2,\"seatType\":\"二等座\",\"seatNum\":9},{\"id\":3,\"seatType\":\"二等座\",\"seatNum\":9}]');
+INSERT INTO `t_train` VALUES (31,'G1520','[{\"id\":1,\"stationName\":\"北京西站\",\"arriveMin\":453,\"leaveMin\":453},{\"id\":2,\"stationName\":\"石家庄站\",\"arriveMin\":513,\"leaveMin\":518},{\"id\":3,\"stationName\":\"郑州东站\",\"arriveMin\":573,\"leaveMin\":578},{\"id\":4,\"stationName\":\"徐州东站\",\"arriveMin\":633,\"leaveMin\":638},{\"id\":5,\"stationName\":\"南京南站\",\"arriveMin\":693,\"leaveMin\":698},{\"id\":6,\"stationName\":\"上海站\",\"arriveMin\":753,\"leaveMin\":753}]','[{\"id\":1,\"seatType\":\"商务座\",\"seatNum\":9},{\"id\":2,\"seatType\":\"二等座\",\"seatNum\":9},{\"id\":3,\"seatType\":\"二等座\",\"seatNum\":9}]');
+
+
 
 
