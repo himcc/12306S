@@ -268,4 +268,20 @@ public class HelloController {
         }
     }
 
+    @GetMapping("/deleteorder")
+    public RetData deleteOrder(@RequestParam Long orderId){
+        RetData ret = new RetData();
+
+        try{
+            orderService.deleteOrder(orderId);
+            ret.setCode(10000);
+            ret.setMsg("删除成功！");
+            return ret;
+        }catch (Exception e){
+            ret.setCode(10002);
+            ret.setMsg(e.getClass().getName()+" "+e.getLocalizedMessage());
+            return ret;
+        }
+    }
+
 }

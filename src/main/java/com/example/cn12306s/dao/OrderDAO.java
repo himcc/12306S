@@ -26,4 +26,7 @@ public interface OrderDAO {
     @Select("select * from t_order where id=#{id}")
     public OrderEntity getOrderById(long id);
 
+    @Delete("delete from t_order where id=#{id}")
+    public int deleteOrder(long id);
+
 }

@@ -1078,8 +1078,9 @@
                                     <span style="float: right">￥`+order.price+` [`+orderStatusMap[order.orderStatus]+`]</span>
                                 </div>
                                 <div style="margin: 10px 0 0 auto;text-align: right">
-                                    <button href="#" style="margin: 0 10px;" `+(order.orderStatus==0?' ':' disabled="disabled" ')+` onclick="createOrder.showPay(`+order.price+','+order.id+`);return false" >支付</button>
-                                    <button href="#" style="" `+(order.orderStatus==1?' ':' disabled="disabled" ')+` onclick="orderShow.refund(`+order.id+`);return false" >退票</button>
+                                    <button href="#" `+(order.orderStatus==0?' ':' disabled="disabled" ')+` onclick="createOrder.showPay(`+order.price+','+order.id+`);return false" >支付</button>
+                                    <button href="#" `+(order.orderStatus==1?' ':' disabled="disabled" ')+` onclick="orderShow.refund(`+order.id+`);return false" >退票</button>
+                                    <button href="#" `+((order.orderStatus==2||order.orderStatus==3)?' ':' disabled="disabled" ')+` onclick="orderShow.del(`+order.id+`);return false" >删除</button>
                                 </div>
                             </div>
                         `;
@@ -1106,6 +1107,18 @@
                     console.log(data.msg)
                 }
             },"json");
+        },
+        del:function (id){
+            if(confirm("真的要删除这个订单么？")){
+                $.get("/deleteorder?orderId="+id,function(data,status,xhr){
+                    if(data.code==10000){
+                        orderShow.init(id);
+                    }else{
+                        $("#tip").text("删除失败");
+                        console.log(data.msg)
+                    }
+                },"json");
+            }
         },
     };
 

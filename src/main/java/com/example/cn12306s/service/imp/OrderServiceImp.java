@@ -34,4 +34,9 @@ public class OrderServiceImp implements OrderService {
         OrderEntity order = orderDAO.getOrderById(orderId);
         int x2 = seatDAO.refundSeat(order);
     }
+
+    @Override
+    public void deleteOrder(long id) {
+        orderDAO.deleteOrder(id);
+    }
 }

@@ -11,4 +11,6 @@ public interface OrderService {
 
     public void refundTicket(long orderId);
 
+    public void deleteOrder(long id);
+
 }
