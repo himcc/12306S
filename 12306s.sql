@@ -113,3 +113,41 @@ create table t_seat (
     unique key name_uniq (exe_train_id,car_no,seat_no),
     index for_query(exe_train_id,seat_type)
 ) engine=innodb,charset=utf8mb4,comment='seat table';
+
+
+
+DROP TABLE IF EXISTS t_order;
+create table t_order (
+    id  bigint NOT NULL auto_increment,
+    uid bigint not null,
+
+    train_name varchar(10) NOT NULL ,
+    exe_train_id int not null,
+
+    arrive_ts  bigint not null,
+    leave_ts bigint not null,
+
+    car_no tinyint unsigned not null,
+    seat_type tinyint unsigned NOT NULL ,
+    seat_no tinyint unsigned not null,
+
+    seat_id bigint not null,
+
+    leave_station_no int NOT NULL ,
+    arrive_station_no int NOT NULL ,
+
+    leave_station_name varchar(10) NOT NULL ,
+    arrive_station_name varchar(10) NOT NULL ,
+
+    price int not null,
+
+    order_status tinyint default 0 not null comment '0 下单，1 已支付，2 退票，3 支付超时自动取消',
+
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    PRIMARY KEY ( id ),
+    index uniq_idx (uid,create_time)
+) engine=innodb,charset=utf8mb4,comment='order table';
+
+
+

@@ -87,6 +87,11 @@
             display: inline-block;
             margin: 5px 15px;
         }
+
+        .ccc{
+            width: fit-content;
+            margin: 0 auto;
+        }
     </style>
     <title>12306S</title>
 </head>
@@ -633,7 +638,7 @@
                 if(data.code==10000){
                     exeTrainShow.init();
                 }else{
-                    $("#tip").text("天剑失败");
+                    $("#tip").text("添加失败");
                     console.log(data.msg)
                 }
             },"json");
@@ -942,7 +947,7 @@
             var trs = data.map(function (che,index,arr){
                 return baseTr(che,index+1)+priceTr(che,index+1)+timeTr(che,index+1);
             }).join(' ');
-            console.log(trs);
+            // console.log(trs);
             $("tbody").children().remove();
             $("tbody").append(trs);
 
@@ -967,6 +972,7 @@
         `,
         shareData:{},
         init:function (seatInfo){
+            createOrder.shareData.seatInfo=seatInfo;
             var p = this;
             $("#mainbox").children().remove();
 
@@ -975,10 +981,149 @@
             $("#opBox").append('<h3>创建订单</h3><hr/>');
 
 
+            var elea = `
+            <br/>
+            <div>
+                <div style="display: inline-block;text-align: right;"><br>`+seatInfo.leaveStation+`<br/>[`+tsToMin(seatInfo.leaveTs)+`]</div>
+                <div style="display: inline-block;vertical-align: top;">`+seatInfo.trainName+`<br> -----> </div>
+                <div style="display: inline-block"><br>`+seatInfo.arriveStation+`<br/>[`+tsToMin(seatInfo.arriveTs)+`]</div>
+            </div>
+            <br/>
+            `;
+
+            $("#opBox").append(elea);
+
+            $("#opBox").append('<div class="ccc" >坐席:'+createOrder.omg(seatInfo)+'<button style="margin-left: 10px;" onclick="createOrder.doCreateOrder()" >创建订单</button>');
+
 
 
         },
+        doCreateOrder:function (){
+            // 执行车次
+            // 座位类型
+            // 区间  id
+            let exeTrainId=createOrder.shareData.seatInfo.exeTrainId;
+            let leaveStationNo=createOrder.shareData.seatInfo.leaveStationNo;
+            let arriveStationNo=createOrder.shareData.seatInfo.arriveStationNo
+            var seatType = $("#seatTypeSelect").val().split('|')[0];
+
+            $.post("/createorder",{"exeTrainId":exeTrainId,"leaveStationNo":leaveStationNo,"arriveStationNo":arriveStationNo,"seatType":seatType},function(data,status,xhr){
+                if(data.code==10000){
+                    createOrder.showPay(data.data.price,data.data.id)
+                }else{
+                    $("#tip").text("下单失败");
+                    console.log(data.msg)
+                }
+            },"json");
+        },
+        omg:function (seatInfo){
+            var pair = {"商务座":"A","一等座":"B","二等座":"C","硬卧":"D","软卧":"E","硬座":"F","无座":"G"};
+            var ret = ['<select id="seatTypeSelect" style="margin-left: 10px;">'];
+            for(var k in pair){
+                var flag = pair[k];
+                if(seatInfo['seat'+flag+'Num']>0){
+                    ret.push('<option>'+k+'|￥'+seatInfo['seat'+flag+'Price']+'</option>');
+                }
+            }
+            ret.push('</select>');
+            return ret.join(' ')
+        },
+        showPay:function (price,id){
+            $("#opBox").children().remove();
+            $("#opBox").append('<h3>支付订单</h3><hr/>');
+            $("#opBox").append('<div style="margin: 0 auto;width: fit-content;">￥'+price+'</div>');
+            $("#opBox").append('<div style="margin: 0 auto;width: fit-content;"><img style="max-width: 228px;max-height: 228px;" id="qrimage" src="data:image/png;base64,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"></div>');
+            $("#opBox").append('<div style="margin: 0 auto;width: fit-content;"><button onclick="createOrder.doPay('+id+')" >支付成功</button></div>');
+        },
+        doPay:function (orderId){
+            $.get("/paysuccess?orderId="+orderId,function(data,status,xhr){
+                if(data.code==10000){
+                    orderShow.init(orderId);
+                }else{
+                    $("#tip").text("支付失败");
+                    console.log(data.msg)
+                }
+            },"json");
+        },
     };
+
+    var orderShow = {
+        init_ele:`
+        <div id="tip" style="width:100%;margin-bottom: 1rem;color: red;">&nbsp;</div>
+        <div id="opBox">
+        </div>
+        `,
+        shareData:{},
+        init:function (orderId){
+            var p = this;
+            $("#mainbox").children().remove();
+
+            $("#mainbox").append(this.init_ele);
+
+            $.get("/getmyorders",function (data,status,xhr){
+                if(data.code==10000){
+                    $("#opBox").append('<h3>订单</h3><hr/>');
+                    var orderDiv = data.data.map(function (order){
+                        console.log("AAA"+order.orderStatus)
+                        return `
+                            <div style="margin-bottom: 3px;border-radius: 5px;background-color: #4dc5fe;padding: 10px;">
+                                <div>
+                                    <div style="display: inline-block;text-align: right;">`+order.leaveStationName+`<br/>`+tsToMin(order.leaveTs)+`</div>
+                                    <div style="display: inline-block;vertical-align: top;">`+order.trainName+`<br> -----> </div>
+                                    <div style="display: inline-block">`+order.arriveStationName+`<br/>`+tsToMin(order.arriveTs)+`</div>
+                                </div>
+                                <div style="margin: 10px 0;">
+                                    <span>`+seatTypeMap[order.seatType]+`</span>
+                                    <span>`+num2(order.carNo)+`车`+num2(order.seatNo)+`号</span>
+                                    <span style="float: right">￥`+order.price+` [`+orderStatusMap[order.orderStatus]+`]</span>
+                                </div>
+                                <div style="margin: 10px 0 0 auto;text-align: right">
+                                    <button href="#" style="margin: 0 10px;" `+(order.orderStatus==0?' ':' disabled="disabled" ')+` onclick="createOrder.showPay(`+order.price+','+order.id+`);return false" >支付</button>
+                                    <button href="#" style="" `+(order.orderStatus==1?' ':' disabled="disabled" ')+` onclick="orderShow.refund(`+order.id+`);return false" >退票</button>
+                                </div>
+                            </div>
+                        `;
+                    }).join(' ');
+
+                    if(orderDiv.length<1){
+                        $("#opBox").text("目前没有订单");
+                    }else {
+                        $("#opBox").append(orderDiv);
+                    }
+
+                }else{
+                    $("#tip").text("获取订单信息失败");
+                    console.log(data.msg)
+                }
+            },"json");
+        },
+        refund:function (id){
+            $.get("/refundticket?orderId="+id,function(data,status,xhr){
+                if(data.code==10000){
+                    orderShow.init(id);
+                }else{
+                    $("#tip").text("退票失败");
+                    console.log(data.msg)
+                }
+            },"json");
+        },
+    };
+
+    var seatTypeMap = {1:"商务座",2:"一等座",3:"二等座",4:"硬卧",5:"软卧",6:"硬座",7:"无座"};
+    var orderStatusMap = {0:"未支付",1:"已支付",2:"已退票",3:"已取消"};
+    function num2(num){
+        if(num<10){
+            return '0'+num.toString();
+        }else{
+            return num.toString();
+        }
+    }
+    function tsToMin(ts){
+
+        return new Date(ts+8*60*60*1000).toISOString().substring(0,16);
+        // var d = new Date(ts);
+        // return d.getFullYear()+'年'+num2(d.getMonth())+'月'+num2(d.getDay())+'日'+num2(d.getHours())+':'+num2(d.getMinutes());
+    }
 
 </script>
 <div class="nav">
@@ -1001,7 +1146,7 @@
                 <a class="textRight" href="#" onclick="exeTrainShow.init();return false" >执行车次</a>
                 <span class="textRight">|</span>
             </div>
-            <a class="textRight" >查看订单</a>
+            <a class="textRight" href="#" onclick="orderShow.init(0);return false" >查看订单</a>
             <a class="textRight" href="#" onclick="chgpwd();return false">修改密码</a>
             <span class="textRight">|</span>
             <span class="textRight">

@@ -52,4 +52,9 @@ public interface ExeTrainStationDAO {
             ") b on (a.exe_train_id=b.exe_train_id and a.station_no &lt; b.station_no) " +
             "</script> ")
     public List<QueryExeTrain> queryExeTrain(QueryInfo q);
+
+    @Select(" select id,exe_train_id,train_name,station_no,station_name,city_name,sale_ts,arrive_ts,leave_ts" +
+            " from t_exe_train_station" +
+            " where exe_train_id=#{exeTrainId} and station_no=#{stationNo}")
+    public ExeTrainStationEntity getExeTrainStationById(@Param("exeTrainId") int exeTrainId,@Param("stationNo") int stationNo);
 }

@@ -4,11 +4,15 @@ import com.example.cn12306s.config.DBUserDetailsService;
 import com.example.cn12306s.dto.QueryExeTrain;
 import com.example.cn12306s.dto.QueryInfo;
 import com.example.cn12306s.dto.RetData;
+import com.example.cn12306s.dto.SeatOccupancyInfo;
+import com.example.cn12306s.entity.OrderEntity;
 import com.example.cn12306s.entity.StationEntity;
 import com.example.cn12306s.entity.UserEntity;
+import com.example.cn12306s.service.OrderService;
 import com.example.cn12306s.service.SeatService;
 import com.example.cn12306s.service.StationService;
 import com.example.cn12306s.service.UserService;
+import com.example.cn12306s.utils.SeatType;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
@@ -32,6 +36,9 @@ public class HelloController {
 
     @Autowired
     private StationService stationService;
+
+    @Autowired
+    private OrderService orderService;
 
     public static long getUid() throws Exception {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -181,6 +188,84 @@ public class HelloController {
         ret.setMsg("ok");
         ret.setData(retd);
         return ret;
+    }
+
+
+    @PostMapping("/createorder")
+    public RetData createOrder(@RequestParam Integer exeTrainId
+            ,@RequestParam Integer leaveStationNo
+            ,@RequestParam Integer arriveStationNo
+            ,@RequestParam String seatType){
+
+        RetData ret = new RetData();
+
+        try{
+            SeatOccupancyInfo s = new SeatOccupancyInfo();
+            s.setExeTrainId(exeTrainId)
+                .setLeaveStationNo(leaveStationNo)
+                .setArriveStationNo(arriveStationNo)
+                .setSeatType(SeatType.getId(seatType));
+            long uid = getUid();
+            OrderEntity orderEntity = seatService.orderSeat(s, uid);
+            ret.setCode(10000);
+            ret.setMsg("下单成功！");
+            ret.setData(orderEntity);
+            return ret;
+        }catch (Exception e){
+            ret.setCode(10002);
+            ret.setMsg(e.getClass().getName()+" "+e.getLocalizedMessage());
+            return ret;
+        }
+    }
+
+    @GetMapping("/paysuccess")
+    public RetData paySuccess(@RequestParam Long orderId){
+        RetData ret = new RetData();
+
+        try{
+            orderService.paySuccess(orderId);
+            ret.setCode(10000);
+            ret.setMsg("支付成功！");
+            return ret;
+        }catch (Exception e){
+            ret.setCode(10002);
+            ret.setMsg(e.getClass().getName()+" "+e.getLocalizedMessage());
+            return ret;
+        }
+    }
+
+    @GetMapping("/getmyorders")
+    public RetData getMyOrders(){
+        RetData ret = new RetData();
+
+        try{
+            long uid = getUid();
+            List<OrderEntity> orders = orderService.getOrderSByUid(uid);
+            ret.setCode(10000);
+            ret.setMsg("成功！");
+            ret.setData(orders);
+            return ret;
+        }catch (Exception e){
+            ret.setCode(10002);
+            ret.setMsg(e.getClass().getName()+" "+e.getLocalizedMessage());
+            return ret;
+        }
+    }
+
+    @GetMapping("/refundticket")
+    public RetData refundTicket(@RequestParam Long orderId){
+        RetData ret = new RetData();
+
+        try{
+            orderService.refundTicket(orderId);
+            ret.setCode(10000);
+            ret.setMsg("退票成功！");
+            return ret;
+        }catch (Exception e){
+            ret.setCode(10002);
+            ret.setMsg(e.getClass().getName()+" "+e.getLocalizedMessage());
+            return ret;
+        }
     }
 
 }
