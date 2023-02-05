@@ -759,18 +759,59 @@
                     $("#opBox").append("没有执行车次");
                     return;
                 }
+                var dateMap = new Map();
+                const dates = new Set();
+                data.data.forEach(function (d){
+                    if(!dateMap.has(d.exeDate)){
+                        dateMap.set(d.exeDate,[d]);
+                    }else{
+                        dateMap.get(d.exeDate).push(d);
+                    }
+                    dates.add(d.exeDate);
+                });
+                // console.log("AAA "+Array.from(dates).sort().reverse())
+                // console.log("BBB "+dateMap.size)
+
                 function getTitle(d){
                     var stationObj =   JSON.parse(d.stationJson);
-                    var haha = '#'+d.id+' '+d.trainName+" "+d.exeDate+' ('+stationObj[0].stationName+'->'+stationObj[stationObj.length-1].stationName+')'
+                    console.log(JSON.stringify(d))
+                    var haha = '#'+d.id+' <div style="width: 60px;display: inline-block">'+d.trainName+'</div> <span style="margin-right: 5px">'+d.leaveMin+'</span>'
+                        +' ('+stationObj[0].stationName+'->'+stationObj[stationObj.length-1].stationName+')'
                         + '<div style="display: inline-block;float: right">开始卖票时间: '+new Date(d.saleTs+8*60*60*1000).toISOString().substring(0,16)+'</div>';
                     return haha;
                 }
-                var ele_arr = data.data.map(function (d){  // [{id,trainName,exeDate,saleTs,stationJson,carJson}]
-                    var a= '<div class="trainHead" style="width: 100%;background-color: #e5eecc;border: 1px solid #c3c3c3;">'+getTitle(d)+'</div>';
-                    var b = '<div style="display:none;width: 100%;background-color: #e5eecc;border: 1px solid #c3c3c3">'+exeTrainShow.showDetail(d)+'</div>';
-                    return a+b;
+
+
+                $("#opBox").append('<div id="listBox" style="width: 650px;"></div>');
+
+                Array.from(dates).sort().reverse().forEach(function (d){
+                    $("#listBox").append('<br/>'+d+'<br/>');
+                    var arr = dateMap.get(d).map(function (d){
+                        //
+                        var stationObj =   JSON.parse(d.stationJson);
+                        var mins = stationObj[0].leaveMin;
+                        var hh = Math.floor(mins/60)
+                        var mm = mins%60;
+                        d.leaveMin = num2(hh)+":"+num2(mm)
+                        return d;
+                    });
+                    var arr_sorted = arr.sort(function (a,b){
+                       if(a.leaveMin==b.leaveMin){
+                           return 0;
+                       } else if(a.leaveMin<b.leaveMin){
+                           return -1;
+                       } else {
+                           return 1;
+                       }
+                    });
+                    var ele_arr = arr_sorted.map(function (d){  // [{id,trainName,exeDate,saleTs,stationJson,carJson}]
+                        var a= '<div class="trainHead" style="width: 100%;background-color: #e5eecc;border: 1px solid #c3c3c3;">'+getTitle(d)+'</div>';
+                        var b = '<div style="display:none;width: 100%;background-color: #e5eecc;border: 1px solid #c3c3c3">'+exeTrainShow.showDetail(d)+'</div>';
+                        return a+b;
+                    });
+                    $("#listBox").append(ele_arr);
                 });
-                $("#opBox").append('<div style="width: 650px;">'+ele_arr.join(" ")+'</div>');
+
                 $(".trainHead").click(function (){
                     $(this).next().slideToggle("fast");
                 });
@@ -830,7 +871,7 @@
             },"json");
         },
         addcar:function (){
-
+            alert("暂时不支持");
         },
     };
 
