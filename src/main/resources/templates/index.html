@@ -500,15 +500,23 @@
             $("#mainbox").children().remove();
 
             $("#mainbox").append(this.init_ele);
+
+            trainShow.omg={}
             $.get("/admin/getalltrain",p.show,"json");
         },
         show: function (data,status,xhr){
             if(data.code==10000){
-                $("#opBox").append('<div style="width: 100%;"><button style="text-decoration: none;" href="#" onclick="trainAdd.init();return false" >添加车次</button></div><br/>');
+                $("#opBox").append('<div id="trainShowOpDiv" style="width: 100%;"><button style="text-decoration: none;" href="#" onclick="trainAdd.init();return false" >添加车次</button></div><br/>');
 
                 if(data.data.length<1){
                     $("#opBox").append("没有车次");
                     return;
+                }else{
+                    trainShow.omg=data.data;
+                    $("#trainShowOpDiv").append(`
+                        <div style="float: right">
+                            <button style="text-decoration: none;" href="#" onclick="trainShow.exeAll();return false" >执行全部车次</button>
+                        </div>`);
                 }
                 function srcDst(d){
                     var stationObj =   JSON.parse(d.stationJson);
@@ -584,6 +592,90 @@
         },
         exe:function (d){
             exeTrainGen.init(d);
+        },
+        exeAll:function (){
+            exeTrainGenBatch.init(trainShow.omg)
+        }
+    };
+
+    var exeTrainGenBatch = {
+        init_ele:`
+        <div id="tip" style="width:100%;margin-bottom: 1rem;color: red;">&nbsp;</div>
+        <div id="opBox"></div>
+        `,
+        init:function (data){
+            var p = this;
+            $("#mainbox").children().remove();
+
+            $("#mainbox").append(this.init_ele);
+
+            $("#opBox").append('<h3>批量生成执行车次</h3><hr/>');
+
+
+            $("#opBox").append('执行日期：<input type="date" id="exeDate" onchange="exeTrainGenBatch.setExeDate()"><br/>')
+            $("#opBox").append('卖票时间：<input type="datetime-local" id="saleTs" ><br/>')
+            $("#opBox").append('<button onclick="exeTrainGenBatch.add()">确定</button>')
+
+            $("#opBox").append('<hr/>');
+            var trains = data.map(function (d){
+                var trainName = d.trainName;
+                return '<tr><td>'+trainName+'</td><td></td></tr>'
+            }).join(" ")
+            $("#opBox").append('<table>'+trains+'</table>');
+
+        },
+        setExeDate:function (){
+            if($("#saleTs").val()==''){
+                var x = new Date(Date.parse($("#exeDate").val())-15*24*60*60*1000+9*60*60*1000);
+                var omg = x.toISOString().substring(0,16);
+                $("#saleTs").val(omg);
+            }
+        },
+        add:function (){
+            $("#tip").text(" ").append("<span>&nbsp;</span>");
+
+            var trainName = $("#trainName").val();
+            var exeDateS = $("#exeDate").val();
+            var saleTsS = $("#saleTs").val();
+
+            if(exeDateS==''){
+                $("#tip").text("执行日期未填");
+                return;
+            }
+            if(saleTsS==''){
+                $("#tip").text("卖票时间未填");
+                return;
+            }
+            if(exeDateS<saleTsS){
+                $("#tip").text("卖票时间晚于执行时间");
+                return;
+            }
+            var saleTs = Date.parse(saleTsS);
+            console.log('saleTs '+saleTsS+' '+saleTs);
+            $("tr").each(function (e){
+               $(this).children().last().append("<img width=\"20\" height=\"20\" src=\"https://media.tenor.com/On7kvXhzml4AAAAj/loading-gif.gif\">")
+            });
+            exeTrainGenBatch.addImp($("tr").first(),exeDateS,saleTs);
+        },
+        addImp:function (e,exeDateS,saleTs){
+            var trainName = e.children().first().text();
+            $.post("/admin/addexetrain",{"trainName":trainName,"exeDate":exeDateS,"saleTs":saleTs},function (data,status,xhr){
+                if(data.code==10000){
+                    e.children().last().text("添加成功");
+                }else{
+                    e.children().last().text("添加失败");
+                }
+                nextTr = e.next();
+                if(nextTr.length>0){
+                    exeTrainGenBatch.addImp(nextTr,exeDateS,saleTs);
+                }else{
+                    setTimeout(function (){
+                        alert("批量生成执行车次完成");
+                        exeTrainShow.init();
+                    },500);
+
+                }
+            },"json");
         },
     };
 
