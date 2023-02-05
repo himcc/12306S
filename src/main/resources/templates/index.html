@@ -913,7 +913,7 @@
         </div>
         `,
         shareData:{},
-        init:function (){
+        init:function (act){
             var p = this;
             $("#mainbox").children().remove();
 
@@ -923,7 +923,6 @@
                 if(data.code==10000){
                     var cont = ticketQuery.content(data.data);
                     $("#opBox").append(cont);
-
                     var startPos = getCookie('startPos');
                     if(startPos!=''){
                         $("#startPos").val(startPos);
@@ -938,7 +937,11 @@
                     }
 
                 }else if(data.code==302){
-                    window.location.pathname='/login'
+                    if(act==1){
+                        window.location.pathname='/login'
+                    }else {
+                        $("#opBox").append('先<a href="/login">登录</a>，再订票');
+                    }
                 }else{
                     $("#tip").text("获取车站信息失败");
                     console.log(data.msg)
@@ -966,11 +969,13 @@
                             </thead><tbody></tbody>
                         </table>
                     </div>
+                    <div id="tip2" style="width:100%;margin-bottom: 1rem;color: red;">&nbsp;</div>
             `;
             return ele;
         },
         qseat:function (){
             $("#tip").text(" ").append("<span>&nbsp;</span>");
+            $("#tip2").text(" ");
             var startPos = $("#startPos").val();
             var endPos = $("#endPos").val();
             var startDate = $("#startDate").val();
@@ -987,6 +992,10 @@
                 if(data.code==10000){
                     ticketQuery.showSeat(data.data);
                     ticketQuery.shareData.seat=data.data;
+                    if(data.data.length<1){
+                        $("#tip2").text("没有查询到车次");
+                        console.log(data.msg)
+                    }
                 }else{
                     $("#tip").text("获取车站信息失败");
                     console.log(data.msg)
@@ -1271,11 +1280,13 @@
         // return d.getFullYear()+'年'+num2(d.getMonth())+'月'+num2(d.getDay())+'日'+num2(d.getHours())+':'+num2(d.getMinutes());
     }
 
+
+
 </script>
 <div class="nav">
     <div class="inb">
         <span class="textRight">12306S</span>
-        <a href="#" id="tiketBtn" class="textRight tiketBtn" onclick="ticketQuery.init();return false">订票</a>
+        <a href="#" id="tiketBtn" class="textRight tiketBtn" onclick="ticketQuery.init(1);return false">订票</a>
     </div>
     <div class="inb" style="float:right">
         <div class="inb" sec:authorize="!isAuthenticated()">
@@ -1308,6 +1319,10 @@
 
 <div class="mainbox" id="mainbox">
 </div>
+
+<script>
+    ticketQuery.init(0);
+</script>
 
 </body>
 </html>
