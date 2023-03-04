@@ -28,12 +28,6 @@ create table t_station (
     unique key name_uniq (station_name)
 ) engine=innodb,charset=utf8mb4,comment='station table';
 
-insert into t_station (station_name,city_name) values ('北京西站','北京');
-insert into t_station (station_name,city_name) values ('北京南站','北京');
-insert into t_station (station_name,city_name) values ('石家庄站','石家庄');
-insert into t_station (station_name,city_name) values ('郑州站','郑州');
-insert into t_station (station_name,city_name) values ('郑州东站','郑州');
-
 -- t_train
 DROP TABLE IF EXISTS t_train;
 create table t_train (
@@ -44,10 +38,6 @@ create table t_train (
     PRIMARY KEY ( id ),
     unique key name_uniq (train_name)
 ) engine=innodb,charset=utf8mb4,comment='train table';
-
-insert into t_train (train_name,station_json,car_json) values ('G100','[{"id":1,"stationName":"北京西站","arriveMin":0,"leaveMin":0},{"id":2,"stationName":"石家庄站","arriveMin":90,"leaveMin":95},{"id":3,"stationName":"郑州东站","arriveMin":150,"leaveMin":150}]','[{"id":1,"seatType":"一等座","seatNum":80},{"id":2,"seatType":"二等座","seatNum":120}]');
-insert into t_train (train_name,station_json,car_json) values ('G101','[{"id":1,"stationName":"北京西站","arriveMin":0,"leaveMin":0},{"id":2,"stationName":"石家庄站","arriveMin":90,"leaveMin":95},{"id":3,"stationName":"郑州东站","arriveMin":150,"leaveMin":150}]','[{"id":1,"seatType":"一等座","seatNum":80},{"id":2,"seatType":"二等座","seatNum":120}]');
-
 
 -- t_exe_train
 DROP TABLE IF EXISTS t_exe_train;
